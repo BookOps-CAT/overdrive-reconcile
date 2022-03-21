@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "overdrive-reconcile"
+version = "0.1.0"
+license = "MIT"
+description = "A set of scripts used for reconciliation of resources between NYPL & BPL Sierra and OverDrive Platform."
+authors = ["Tomek <klingaroo@gmail.com>"]
+readme = "README.md"
+keywords = ["cataloging", "bibliographic records", "electronic resources"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^1.4.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.1"
+pytest-cov = "^3.0.0"
+black = "^22.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+exclude = '''
+(
+    /(
+        \.eggs
+       | \.git
+       | \.hg
+       | \.mypy_cache
+       | \.tox
+       | \.venv
+       | _build
+       | buck-out
+       | build
+       | dist
+    )/
+    | temp.py
+)
+'''
