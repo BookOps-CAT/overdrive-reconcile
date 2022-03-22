@@ -872,6 +872,14 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "pymarc"
+version = "4.1.3"
+description = "Read, write and modify MARC bibliographic data"
+category = "main"
+optional = false
+python-versions = ">=3.6.*"
+
+[[package]]
 name = "pyparsing"
 version = "3.0.7"
 description = "Python parsing module"
@@ -1151,7 +1159,7 @@ test = ["websockets"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "06bd1f1b6bec096d6ebc6283c4f80e51da3c8604e38f5be0db273bb0d6fef6f0"
+content-hash = "2c6139dedd4971167e2efcee3133b2d2bb45c1dd7126ee14363473cbfd8be4f6"
 
 [metadata.files]
 anyio = [
@@ -1672,6 +1680,9 @@ pycparser = [
 pygments = [
     {file = "Pygments-2.11.2-py3-none-any.whl", hash = "sha256:44238f1b60a76d78fc8ca0528ee429702aae011c265fe6a8dd8b63049ae41c65"},
     {file = "Pygments-2.11.2.tar.gz", hash = "sha256:4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"},
+]
+pymarc = [
+    {file = "pymarc-4.1.3.tar.gz", hash = "sha256:f57694d6ef580a4381f04dabb68bb90b3b6a8d67d61adc3992253040180ab2a6"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
