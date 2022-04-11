@@ -1,4 +1,5 @@
 import csv
+import re
 
 
 def save2csv(dst_fh, row):
@@ -18,3 +19,16 @@ def save2csv(dst_fh, row):
             quoting=csv.QUOTE_MINIMAL,
         )
         out.writerow(row)
+
+
+P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
+
+
+def is_reserve_id(i: str) -> bool:
+    """
+    Identifies if passed string is a reserve id or not
+    """
+    if re.match(P, i):
+        return True
+    else:
+        return False

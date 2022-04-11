@@ -4,25 +4,11 @@ The script splits them into separate rows, preserving their bib #
 """
 
 import csv
-import re
 
 if __name__ == "__main__":
-    from utils import save2csv
+    from utils import save2csv, is_reserve_id
 else:
-    from .utils import save2csv
-
-
-P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
-
-
-def is_reserve_id(i: str) -> bool:
-    """
-    Identifies if passed string is a reserve id or not
-    """
-    if re.match(P, i):
-        return True
-    else:
-        return False
+    from .utils import save2csv, is_reserve_id
 
 
 def prep(source: str, report: str) -> None:
