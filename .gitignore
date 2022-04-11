@@ -23,3 +23,8 @@ dmypy.json
 # local
 temp*
 venvcmd.sh
+*.csv
+*/files/*.txt
+*.mrc
+*.mrk
+*.gz
