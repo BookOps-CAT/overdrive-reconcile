@@ -6,20 +6,19 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine.row import LegacyRow
 
 
+sql_stmn = """
+    SELECT i.identifier FROM identifiers i 
+    JOIN licensepools lp ON i.id=lp.identifier_id 
+    WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
+    LIMIT 2
+"""
+
+
 @pytest.mark.local
 def test_bpl_conn(local_bpl_connection):
     engine = create_engine(local_bpl_connection)
     with engine.connect() as conn:
-        results = conn.execute(
-            text(
-                """
-                SELECT i.identifier FROM identifiers i 
-                JOIN licensepools lp ON i.id=lp.identifier_id 
-                WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
-                LIMIT 2
-                """
-            )
-        )
+        results = conn.execute(text(sql_stmn))
         for r in results:
             assert isinstance(r, LegacyRow)
             assert isinstance(r[0], str)
@@ -30,16 +29,7 @@ def test_bpl_conn(local_bpl_connection):
 def test_nypl_conn(local_nypl_connection):
     engine = create_engine(local_nypl_connection)
     with engine.connect() as conn:
-        results = conn.execute(
-            text(
-                """
-                SELECT i.identifier FROM identifiers i 
-                JOIN licensepools lp ON i.id=lp.identifier_id 
-                WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
-                LIMIT 2
-                """
-            )
-        )
+        results = conn.execute(text(sql_stmn))
         for r in results:
             assert isinstance(r, LegacyRow)
             assert isinstance(r[0], str)
