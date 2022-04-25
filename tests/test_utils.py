@@ -10,6 +10,10 @@ from overdrive_reconcile.utils import is_reserve_id, save2csv
     "arg,expectation",
     [
         ("0e90d7a5-30b8-4d07-9d13-df0e02ea631e", True),
+        ("92080423-8690-4580-A5AE-BCFCD3191CFB", True),
+        ("14319803-7346-4454-934b-790eb8b24e23", True),
+        ("EBL120658", False),
+        ("Unowned Dawsonera PDA title", False),
         ("12345", False),
         ("12345678-1234", False),
     ],
