@@ -4,7 +4,7 @@ import os
 import pytest
 import yaml
 
-from overdrive_reconcile import marc_file
+from overdrive_reconcile import prep
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def mock_dst_fh(monkeypatch, test_dst):
     def _patch(*args, **kwargs):
         return test_dst
 
-    monkeypatch.setattr(marc_file, "create_dst_fh", _patch)
+    monkeypatch.setattr(prep, "create_dst_fh", _patch)
 
 
 def get_creds(library: str):

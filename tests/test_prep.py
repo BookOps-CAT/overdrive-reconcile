@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from overdrive_reconcile.marc_file import create_dst_fh, extract_reserve_ids
+from overdrive_reconcile.prep import create_dst_fh, extract_reserve_ids_from_marc
 
 
 def test_create_dst_fh():
