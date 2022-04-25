@@ -28,3 +28,4 @@ venvcmd.sh
 *.mrc
 *.mrk
 *.gz
+!tests/sample.mrc
