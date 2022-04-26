@@ -7,10 +7,20 @@ import yaml
 from overdrive_reconcile import prep
 
 
+class MockOSError:
+    def __init__(self, *args, **kwargs):
+        raise OSError
+
+
+@pytest.fixture
+def mock_os_error(monkeypatch):
+    monkeypatch.setattr("os.remove", MockOSError)
+
+
 @pytest.fixture
 def test_dst(tmpdir):
     today = datetime.now().date()
-    return tmpdir.join(f"TEST-reserve-ids-{today}.csv")
+    return tmpdir.join(f"NYPL-foo-{today}.csv")
 
 
 @pytest.fixture
