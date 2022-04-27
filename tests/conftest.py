@@ -18,17 +18,17 @@ def mock_os_error(monkeypatch):
 
 
 @pytest.fixture
-def test_dst(tmpdir):
+def test_main_dir(tmpdir):
     today = datetime.now().date()
-    return tmpdir.join(f"NYPL-foo-{today}.csv")
+    return tmpdir.join(f"LIB_CODE")
 
 
 @pytest.fixture
-def mock_dst_fh(monkeypatch, test_dst):
+def mock_main_dir(monkeypatch, test_main_dir):
     def _patch(*args, **kwargs):
-        return test_dst
+        return test_main_dir
 
-    monkeypatch.setattr(prep, "create_dst_fh", _patch)
+    monkeypatch.setattr(prep, "dst_main_directory", _patch)
 
 
 def get_creds(library: str):
