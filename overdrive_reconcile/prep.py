@@ -2,12 +2,33 @@ from datetime import datetime
 import csv
 import os
 
+import pandas as pd
 from pymarc import MARCReader
 
 
 from .utils import save2csv, is_reserve_id
+from .simplye import RESERVE_ID_QUERY, get_simplye_creds, simplye_connection
 
-DST_DIR = "./overdrive_reconcile/files"
+
+def dst_main_directory(library: str) -> str:
+    """
+    Main directory for report files resulting from
+    the reconciliation process.
+    """
+    return f"./files/{library}"
+
+
+def date_subdirectory(library: str) -> str:
+    today = datetime.now().date()
+
+    main_dir = dst_main_directory(library)
+
+    date_dir = f"{main_dir}/{today}"
+
+    if not os.path.exists(date_dir):
+        os.makedirs(date_dir)
+
+    return date_dir
 
 
 def create_dst_fh(library: str, name: str):
@@ -18,12 +39,13 @@ def create_dst_fh(library: str, name: str):
         library:                library code to prefix file handle
         name:                   file name
     """
-    today = datetime.now().date()
-    out = f"{DST_DIR}/{library}-{name}-{today}.csv"
+
+    dst_dir = date_subdirectory(library)
+    out = f"{dst_dir}/{library}-{name}.csv"
     return out
 
 
-def extract_reserve_ids_from_marc(library: str, marc_fh: str, out: str = None) -> None:
+def extract_reserve_ids_from_backdated_file(library: str, marc_fh: str) -> None:
     """
     Parses OverDrive backdated MarcExpress records and outputs
     found Reserve IDs to a file.
@@ -33,7 +55,6 @@ def extract_reserve_ids_from_marc(library: str, marc_fh: str, out: str = None) -
     Args:
         library:                'BPL' or 'NYPL'
         marc_fh:                file handle of MARC21 file to be processed
-        out:                    file handle of the destination csv file
 
     """
     if library.upper() not in ("BPL", "NYPL"):
@@ -42,8 +63,8 @@ def extract_reserve_ids_from_marc(library: str, marc_fh: str, out: str = None) -
     if not isinstance(marc_fh, str) or not marc_fh:
         raise ValueError("Invalid or missing source MARC file passed.")
 
-    if not isinstance(out, str):
-        out = create_dst_fh(library, "marc-reserve-ids")
+    out = create_dst_fh(library, "backdated-reserve-ids")
+    fresh_start([out])
 
     with open(marc_fh, "rb") as marcfile:
         reader = MARCReader(marcfile)
@@ -69,7 +90,7 @@ def fresh_start(files: list[str]) -> None:
                 raise
 
 
-def prep_reserve_ids_in_sierra_export(src_fh: str, library: str) -> None:
+def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
     """
     Filters and prepares OverDrive Reserve IDs exported to text file
     from Sierra for further analyis
@@ -104,3 +125,17 @@ def prep_reserve_ids_in_sierra_export(src_fh: str, library: str) -> None:
                         save2csv(dst_validated_fh, [row[0], i])
                     else:
                         save2csv(dst_rejected_fh, [row[0], i])
+
+
+def simplye2csv(library: str):
+    """
+    Retrieves OverDrive Reserve IDs from given SimplyE database
+    and saves the results to a csv file.
+
+    Args:
+        library:                SimplyE library database code: 'NYPL' or 'BPL'
+    """
+    out = create_dst_fh(library, "simplye-reserve-ids")
+    engine = simplye_connection(library)
+    df = pd.read_sql_query(RESERVE_ID_QUERY, con=engine)
+    df.to_csv(out, index=False, header=None)
