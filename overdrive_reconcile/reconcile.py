@@ -3,12 +3,12 @@ The main module that runs the reconciliation process.
 """
 from datetime import datetime
 
-from pandas import DataFrame
+import pandas as pd
 
-from .prep import prep_reserve_ids_in_sierra_export, date_subdirectory
+from .prep import prep_reserve_ids_in_sierra_export, date_subdirectory, simplye2csv
 
 
-def dedup_on_reserve_id(library: str, df: DataFrame, subdir: str):
+def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str):
     """
     Deduplicates given dataframe on reserve ID leaving the latest record.
     Does not consiter situation where duplicate reserve ID is present on the
@@ -50,6 +50,11 @@ def reconcile(library: str, sierra_export_fh: str):
     """
     Launches recoinciliation process
     """
+
+    # reports directory
+    subdir = date_subdirectory(library)
+    print(f"All output reports will be saved to {subdir}.")
+
     avail_fh = f"{subdir}/{library}-FINAL-available-resources.csv"
     miss_fh = f"{subdir}/{library}-FINAL-missing-for-import-resources.csv"
     del_fh = f"{subdir}/{library}-FINAL-for-deletion-resources.csv"
@@ -64,14 +69,12 @@ def reconcile(library: str, sierra_export_fh: str):
     print("Launching reconciliation process...")
 
     # prepare data from Sierra
-    prep_reserve_ids_in_sierra_export(sierra_export_fh, library)
+    print("Parsing Sierra Export data...")
+    prep_reserve_ids_in_sierra_export(library, sierra_export_fh)
 
     # prepare data from SimplyE
+    print(f"Retrieving data from {library} SimplyE DB...")
     simplye2csv(library)
-
-    # reports directory
-    subdir = date_subdirectory(library)
-    print(f"All output reports will be saved to {subdir}.")
 
     # merge both datasets
     # retireve Sierra data
@@ -80,7 +83,7 @@ def reconcile(library: str, sierra_export_fh: str):
         f"{subdir}/{library}-sierra-prepped-reserve-ids.csv",
         names=["bib_no", "reserve_id"],
     )
-    dedup_on_reserve_id(df, library, subdir)
+    dedup_on_reserve_id(library, df, subdir)
 
     # use deduped sierra reserve ids for analysis
     print("Normalizing Sierra and SimplyE Reserve IDs...")
@@ -96,7 +99,7 @@ def reconcile(library: str, sierra_export_fh: str):
 
     print("Launching analysis...")
     # find inner joint (available - present in both sets)
-    adf = pd.merge(df1, df2, on="reserve_id")
+    adf = pd.merge(sdf, edf, on="reserve_id")
     adf["url"] = url + adf["reserve_id"].astype(str)
 
     adf.to_csv(avail_fh, index=False, columns=["bib_no", "reserve_id", "url"])
@@ -104,7 +107,7 @@ def reconcile(library: str, sierra_export_fh: str):
 
     # create full union of both sets
     print("Creating full union of both sets...")
-    fdf = pd.merge(df1, df2, on="reserve_id", how="outer", indicator=True)
+    fdf = pd.merge(sdf, edf, on="reserve_id", how="outer", indicator=True)
 
     # find missing resources
     print("Identifying missing in Sierra Reserve IDs...")
@@ -117,9 +120,10 @@ def reconcile(library: str, sierra_export_fh: str):
     print("Finding resources to be deleted in Sierra...")
     ddf = fdf[fdf["_merge"] == "left_only"]
     ddf["url"] = url + ddf["reserve_id"].astype(str)
-    ddf.to_cvs(
+    ddf.to_csv(
         del_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
     )
     print(
         f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. Report saved to: {del_fh}"
     )
+    print("RECONCILIATION COMPLETE...")
