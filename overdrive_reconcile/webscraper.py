@@ -8,7 +8,7 @@ import time
 
 import requests
 from bs4 import BeautifulSoup
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, Timeout
 
 from overdrive_reconcile.utils import save2csv, create_dst_csv_fh
 
@@ -98,6 +98,17 @@ def get_ebook_status(oid, bid, html):
     return ebook_status
 
 
+def make_request(url, headers):
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        print("Requested page: {} == {}".format(response.url, response.status_code))
+        return response
+    except Timeout:
+        print("Server timed out. Restarting in 15 sec...")
+        time.sleep(15)
+        make_request(url, header)
+
+
 def get_html(url: str, agent: str = "bookops/NYPL") -> bytes:
     """
     retrieves html code from given url
@@ -112,8 +123,7 @@ def get_html(url: str, agent: str = "bookops/NYPL") -> bytes:
 
     headers = {"user-agent": agent}
 
-    response = requests.get(url, headers=headers, timeout=10)
-    print("Requested page: {} == {}".format(response.url, response.status_code))
+    response = make_request(url, headers)
 
     if response.status_code == requests.codes.ok:
         return response.content
