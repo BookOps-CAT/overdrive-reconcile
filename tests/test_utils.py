@@ -1,9 +1,16 @@
 import csv
+from datetime import datetime
+import os
 
 import pytest
 
-
-from overdrive_reconcile.utils import is_reserve_id, save2csv
+from overdrive_reconcile.utils import (
+    is_reserve_id,
+    save2csv,
+    create_dst_csv_fh,
+    date_subdirectory,
+    dst_main_directory,
+)
 
 
 @pytest.mark.parametrize(
@@ -32,3 +39,21 @@ def test_save2csv(tmpdir):
 
     with open(out, "r") as f:
         assert f.read().strip() == 'foo,bar,"spam,baz"\nfoo2,bar2,"spam2,baz2"'
+
+
+@pytest.mark.parametrize("arg", ["BPL", "NYPL"])
+def test_dst_main_directory(arg):
+    assert dst_main_directory(arg) == f"./files/{arg}"
+
+
+@pytest.mark.parametrize("arg", ["BPL", "NYPL"])
+def test_date_subdirectory(test_main_dir, mock_main_dir, arg):
+    today = datetime.now().date()
+    assert date_subdirectory(arg) == f"{test_main_dir}/{today}"
+    assert os.path.exists(f"{test_main_dir}/{today}")
+
+
+def test_create_dst_csv_fh(test_main_dir, mock_main_dir):
+    today = datetime.now().date()
+    subdir = f"{test_main_dir}/{today}"
+    assert create_dst_csv_fh("BPL", "foo") == f"{subdir}/BPL-foo.csv"

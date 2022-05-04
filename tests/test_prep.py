@@ -4,26 +4,11 @@ import os
 import pytest
 
 from overdrive_reconcile.prep import (
-    create_dst_fh,
-    date_subdirectory,
-    dst_main_directory,
     extract_reserve_ids_from_backdated_file,
     fresh_start,
     prep_reserve_ids_in_sierra_export,
     simplye2csv,
 )
-
-
-@pytest.mark.parametrize("arg", ["BPL", "NYPL"])
-def test_dst_main_directory(arg):
-    assert dst_main_directory(arg) == f"./files/{arg}"
-
-
-@pytest.mark.parametrize("arg", ["BPL", "NYPL"])
-def test_date_subdirectory(test_main_dir, mock_main_dir, arg):
-    today = datetime.now().date()
-    assert date_subdirectory(arg) == f"{test_main_dir}/{today}"
-    assert os.path.exists(f"{test_main_dir}/{today}")
 
 
 def test_extract_reserve_ids_from_backdated_file(test_main_dir, mock_main_dir):
@@ -95,7 +80,9 @@ def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(
 
 
 @pytest.mark.local
-def test_simplye2csv(test_main_dir, mock_main_dir):
+def test_simplye2csv(test_main_dir, mock_main_dir, mock_simplye_sql):
+    # warning this will take time to run since it's getting entire BPL Overdrive
+    # catalog
     today = datetime.now().date()
     simplye2csv("BPL")
     with open(f"{test_main_dir}/{today}/BPL-simplye-reserve-ids.csv", "r") as f:

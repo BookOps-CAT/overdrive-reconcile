@@ -4,7 +4,7 @@ import os
 import pytest
 import yaml
 
-from overdrive_reconcile import prep
+from overdrive_reconcile import utils, simplye
 
 
 class MockOSError:
@@ -28,7 +28,7 @@ def mock_main_dir(monkeypatch, test_main_dir):
     def _patch(*args, **kwargs):
         return test_main_dir
 
-    monkeypatch.setattr(prep, "dst_main_directory", _patch)
+    monkeypatch.setattr(utils, "dst_main_directory", _patch)
 
 
 def get_creds(library: str):

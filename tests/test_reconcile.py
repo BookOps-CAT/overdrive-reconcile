@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from overdrive_reconcile.prep import date_subdirectory
+from overdrive_reconcile.utils import date_subdirectory
 from overdrive_reconcile.reconcile import dedup_on_reserve_id
 
 

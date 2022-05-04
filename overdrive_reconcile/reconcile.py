@@ -5,7 +5,8 @@ from datetime import datetime
 
 import pandas as pd
 
-from .prep import prep_reserve_ids_in_sierra_export, date_subdirectory, simplye2csv
+from .prep import prep_reserve_ids_in_sierra_export, simplye2csv
+from .utils import date_subdirectory
 
 
 def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str):
@@ -57,7 +58,7 @@ def reconcile(library: str, sierra_export_fh: str):
 
     avail_fh = f"{subdir}/{library}-FINAL-available-resources.csv"
     miss_fh = f"{subdir}/{library}-FINAL-for-import-missing-resources.csv"
-    del_fh = f"{subdir}/{library}-FINAL-for-deletion-resources.csv"
+    del_fh = f"{subdir}/{library}-for-deletion-verification-required.csv"
 
     if library == "NYPL":
         url = "http://ebooks.nypl.org/ContentDetails.htm?ID="
