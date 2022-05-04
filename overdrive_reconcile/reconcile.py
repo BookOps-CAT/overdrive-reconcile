@@ -56,7 +56,7 @@ def reconcile(library: str, sierra_export_fh: str):
     print(f"All output reports will be saved to {subdir}.")
 
     avail_fh = f"{subdir}/{library}-FINAL-available-resources.csv"
-    miss_fh = f"{subdir}/{library}-FINAL-missing-for-import-resources.csv"
+    miss_fh = f"{subdir}/{library}-FINAL-for-import-missing-resources.csv"
     del_fh = f"{subdir}/{library}-FINAL-for-deletion-resources.csv"
 
     if library == "NYPL":
@@ -78,6 +78,7 @@ def reconcile(library: str, sierra_export_fh: str):
 
     # merge both datasets
     # retireve Sierra data
+    print("Merging Sierra and SimplyE sets...")
     today = datetime.now().date()
     df = pd.read_csv(
         f"{subdir}/{library}-sierra-prepped-reserve-ids.csv",
