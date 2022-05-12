@@ -58,7 +58,10 @@ def fresh_start(files: list[str]) -> None:
 def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
     """
     Filters and prepares OverDrive Reserve IDs exported to text file
-    from Sierra for further analyis
+    from Sierra for further analysis.
+    It's common to see print orders attached to e-resource bib. It is important
+    to make sure the list from Sierra does not include any mistakenly included
+    records!
 
     Sierra export configuration:
         fields: "RECORD #(BIBLIO)","037|a"
