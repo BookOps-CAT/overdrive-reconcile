@@ -56,16 +56,19 @@ def simplye_connection(library: str) -> Engine:
     return engine
 
 
-def get_reserve_id(library: str):
+def get_reserve_id(library: str, reserve_id: str) -> None:
     from sqlalchemy import text
 
     engine = simplye_connection(library)
-    query = """
+    stmn = text(
+        """
     SELECT i.identifier FROM identifiers i 
-    WHERE i.identifier='8cd53ed9-cebd-4f78-8bef-20a58f6f3857'
+    WHERE i.identifier=:reserve_id
     """
+    )
+    stmn = stmn.bindparams(reserve_id=reserve_id)
     with engine.connect() as conn:
-        result = conn.execute(text(query))
+        result = conn.execute(stmn)
 
         for row in result:
             print(row)
