@@ -1,4 +1,4 @@
-[tool.poetry]
+ [tool.poetry]
 name = "overdrive-reconcile"
 version = "0.1.0"
 license = "MIT"
@@ -20,7 +20,7 @@ beautifulsoup4 = "^4.11.1"
 pytest = "^7.1.1"
 pytest-cov = "^3.0.0"
 black = "^22.1.0"
-jupyterlab = "^3.3.2"
+jupyterlab = "^3.4.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
