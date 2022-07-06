@@ -54,3 +54,20 @@ def simplye_connection(library: str) -> Engine:
     conn = f"postgresql://{creds.get('USER')}:{creds.get('PASSWORD')}@{creds.get('HOST')}/{creds.get('DATABASE')}"
     engine = create_engine(conn)
     return engine
+
+
+def get_reserve_id(library: str):
+    from sqlalchemy import text
+
+    engine = simplye_connection(library)
+    query = """
+    SELECT i.identifier FROM identifiers i 
+    WHERE i.identifier='8cd53ed9-cebd-4f78-8bef-20a58f6f3857'
+    """
+    with engine.connect() as conn:
+        result = conn.execute(text(query))
+
+        for row in result:
+            print(row)
+
+        print(f"found {result.rowcount} results.")
