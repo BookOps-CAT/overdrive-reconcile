@@ -24,7 +24,7 @@ dmypy.json
 temp*
 venvcmd.sh
 *.csv
-*/files/*.txt
+files/
 *.mrc
 *.mrk
 *.gz
