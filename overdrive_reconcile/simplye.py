@@ -62,8 +62,9 @@ def get_reserve_id(library: str, reserve_id: str) -> None:
     engine = simplye_connection(library)
     stmn = text(
         """
-    SELECT i.identifier FROM identifiers i 
-    WHERE i.identifier=:reserve_id
+    SELECT * FROM identifiers i
+    JOIN licensepools lp ON i.id=lp.identifier_id
+    WHERE i.type='Overdrive ID' AND i.identifier=:reserve_id
     """
     )
     stmn = stmn.bindparams(reserve_id=reserve_id)
@@ -71,6 +72,8 @@ def get_reserve_id(library: str, reserve_id: str) -> None:
         result = conn.execute(stmn)
 
         for row in result:
-            print(row)
+            # print(row)
+            for k, v in row._mapping.items():
+                print(k, v)
 
         print(f"found {result.rowcount} results.")
