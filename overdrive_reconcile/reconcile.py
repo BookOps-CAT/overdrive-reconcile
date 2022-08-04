@@ -7,6 +7,7 @@ import pandas as pd
 
 from .prep import prep_reserve_ids_in_sierra_export, simplye2csv
 from .utils import date_subdirectory
+from .webscraper import scrape
 
 
 def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str):
@@ -128,4 +129,10 @@ def reconcile(library: str, sierra_export_fh: str):
     print(
         f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. Report saved to: {del_fh}"
     )
+
+    print("Veryfying records for deletion via web scraping OverDrive platform...")
+    print("<go get your coffee - this may take a while>")
+    total = ddf.shape[0] - 1
+    scrape(library, del_fh, total)
+
     print("RECONCILIATION COMPLETE...")
