@@ -37,13 +37,14 @@ EbookStatus = namedtuple(
 EbookStatus.__new__.__defaults__ = (None, None, None, None, None, None)
 
 
-def scrape(library: str, src_fh: str) -> None:
+def scrape(library: str, src_fh: str, total: int) -> None:
     """
     Launches web scraping of OverDrive catalog
 
     Args:
         library:                library code
         src_fh:                 source data file handle
+        total:                  number of total resources to check
     """
     dst_fh = create_dst_csv_fh(library, "FINAL-for-deletion-verified-resources")
     reject_fh = create_dst_csv_fh(library, "false-positives-for-deletion")
@@ -52,10 +53,12 @@ def scrape(library: str, src_fh: str) -> None:
         reader = csv.reader(src)
         next(reader)  # skip header
 
+        n = 0
         for row in reader:
+            n += 1
             bib_no = row[0]
             url = row[2]
-            page = get_html(url)
+            page = get_html(url, n, total)
             if not page:
                 row.append("removed")
                 save2csv(dst_fh, row)
@@ -98,23 +101,27 @@ def get_ebook_status(oid, bid, html):
     return ebook_status
 
 
-def make_request(url, headers):
+def make_request(url, n, total, headers):
     try:
         response = requests.get(url, headers=headers, timeout=10)
-        print("Requested page: {} == {}".format(response.url, response.status_code))
+        print(
+            f"({n} of {total}) Requested page: {response.url} == {response.status_code}"
+        )
         return response
     except Timeout:
         print("Server timed out. Restarting in 15 sec...")
         time.sleep(15)
-        make_request(url, header)
+        make_request(url, headers)
 
 
-def get_html(url: str, agent: str = "bookops/NYPL") -> bytes:
+def get_html(url: str, n: int, total: int, agent: str = "bookops/NYPL") -> bytes:
     """
     retrieves html code from given url
     args:
         url:                    URL of a page to be requested
         agent:                  agent header of the request
+        n:                      resource sequence #
+        total:                  total number of resources to request
     returns:
         page
     """
@@ -123,7 +130,7 @@ def get_html(url: str, agent: str = "bookops/NYPL") -> bytes:
 
     headers = {"user-agent": agent}
 
-    response = make_request(url, headers)
+    response = make_request(url, n, total, headers)
 
     if response.status_code == requests.codes.ok:
         return response.content
@@ -220,4 +227,4 @@ def update_status(metadata, ebook_status):
 if __name__ == "__main__":
     import sys
 
-    scrape(sys.argv[1], sys.argv[2])
+    scrape(sys.argv[1], sys.argv[2], sys.argv[3])
