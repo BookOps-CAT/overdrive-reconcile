@@ -7,7 +7,7 @@ from pymarc import MARCReader
 
 
 from .utils import save2csv, is_reserve_id, create_dst_csv_fh
-from .simplye import RESERVE_ID_QUERY, get_simplye_creds, simplye_connection
+from . import simplye
 
 
 def extract_reserve_ids_from_backdated_file(library: str, marc_fh: str) -> None:
@@ -104,6 +104,7 @@ def simplye2csv(library: str):
         library:                SimplyE library database code: 'NYPL' or 'BPL'
     """
     out = create_dst_csv_fh(library, "simplye-reserve-ids")
-    engine = simplye_connection(library)
-    df = pd.read_sql_query(RESERVE_ID_QUERY, con=engine)
+    engine = simplye.simplye_connection(library)
+    query_stmn = simplye.get_reserve_id_query()
+    df = pd.read_sql_query(query_stmn, con=engine)
     df.to_csv(out, index=False, header=None)
