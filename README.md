@@ -30,7 +30,7 @@ $ python run.py BPL "C:/temp/overdrive-all-sierra-export.txt"
 
 ### analysis reports
 
-The reconciliation scrips creates a designated directory to put all its reports: `overdrive-reconcile/files/{library}/{YYYY-MM-DD}/`
+The reconciliation scrip creates a designated directory to put all its reports: `overdrive-reconcile/files/{library}/{YYYY-MM-DD}/`
 It creates the following reports:
 + `{library}-FINAL-available-resources.csv`
 + `{library}-FINAL-duplicate-reserveid-sierra.csv`
