@@ -9,11 +9,12 @@ from sqlalchemy.engine.base import Engine
 import yaml
 
 
-RESERVE_ID_QUERY = """
-    SELECT i.identifier FROM identifiers i 
-    JOIN licensepools lp ON i.id=lp.identifier_id 
-    WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
-"""
+def get_reserve_id_query() -> str:
+    return """
+        SELECT i.identifier FROM identifiers i 
+        JOIN licensepools lp ON i.id=lp.identifier_id 
+        WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
+    """
 
 
 def get_cred_fh(library: str) -> str:
