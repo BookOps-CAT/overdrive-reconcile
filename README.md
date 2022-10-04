@@ -30,7 +30,7 @@ $ python run.py BPL "C:/temp/overdrive-all-sierra-export.txt"
 
 ### analysis reports
 
-The reconciliation scrip creates a designated directory to put all its reports: `overdrive-reconcile/files/{library}/{YYYY-MM-DD}/`
+The reconciliation script creates a designated directory to put all its reports: `overdrive-reconcile/files/{library}/{YYYY-MM-DD}/`
 It creates the following reports:
 + `{library}-FINAL-available-resources.csv`
 + `{library}-FINAL-duplicate-reserveid-sierra.csv`
@@ -55,7 +55,7 @@ Actionable reports have the `FINAL` affix in the title.
 
 ### how this works?
 
-The script analysis OverDrive data pulled from ILS (Sierra) and compares it with data pulled from SimplyE database. These two sets acquire information from two different sources: OverDrive Marketplace MARC records and OverDrive API. Resources found in both sets are considered to be available and are left alone. Identification of resources found in the SimplyE database only allow compilation of a MARC file in the OverDrive Marketplace so they are ingested into ILS. Resources found only in Sierra may indicate they are no logger available from OverDrive. This however needs to be verified because of OverDrive API crashes ([SIMPLY-391 issue](https://jira.nypl.org/browse/SIMPLY-3961)) that result in missing data in SimplyE DB. 
+The script analyzes OverDrive data pulled from ILS (Sierra) and compares it with data pulled from SimplyE database. These two sets acquire information from two different sources: OverDrive Marketplace MARC records and OverDrive API. Resources found in both sets are considered to be available and are left alone. Identification of resources found in the SimplyE database only allow compilation of a MARC file in the OverDrive Marketplace so they are ingested into ILS. Resources found only in Sierra may indicate they are no logger available from OverDrive. This however needs to be verified because of OverDrive API crashes ([SIMPLY-391 issue](https://jira.nypl.org/browse/SIMPLY-3961)) that result in missing data in SimplyE DB. 
 
 [![diagram](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/Overdrive-weeding.drawio.png)](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/Overdrive-weeding.drawio.png)
 
