@@ -6,11 +6,27 @@ import pytest
 
 from overdrive_reconcile.utils import (
     is_reserve_id,
+    counted,
+    count_rows,
     save2csv,
     create_dst_csv_fh,
     date_subdirectory,
     dst_main_directory,
 )
+
+
+def test_counted():
+    @counted
+    def some_func():
+        return None
+
+    some_func()
+    some_func()
+    assert some_func.calls == 2
+
+
+def test_count_rows():
+    assert count_rows("tests/for-deletion-sample.csv") == 3
 
 
 @pytest.mark.parametrize(
