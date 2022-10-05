@@ -37,7 +37,7 @@ $ python run.py webscrape {library} {data source path} {row to start from}
 CLI shows traceback to a timeout error (last processed resource had number 626):
 [![scraping timeout](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/webscraping-error.png)](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/webscraping-error.png)
 
-Restart the process by providing the number of the next resource (627):
+Restart the process by providing the number of the next resource and "default" instead of the full path for the source:
 ```bash
 $ python run.py webscrape BPL default 627
 ```
