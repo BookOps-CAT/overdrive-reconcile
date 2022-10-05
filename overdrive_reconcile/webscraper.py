@@ -37,7 +37,7 @@ EbookStatus = namedtuple(
 EbookStatus.__new__.__defaults__ = (None, None, None, None, None, None)
 
 
-def scrape(library: str, src_fh: str, total: int) -> None:
+def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
     """
     Launches web scraping of OverDrive catalog
 
@@ -53,22 +53,23 @@ def scrape(library: str, src_fh: str, total: int) -> None:
         reader = csv.reader(src)
         next(reader)  # skip header
 
-        n = 0
+        n = 1
         for row in reader:
-            n += 1
-            bib_no = row[0]
-            url = row[2]
-            page = get_html(url, n, total)
-            if not page:
-                row.append("removed")
-                save2csv(dst_fh, row)
-            else:
-                status = get_ebook_status(None, bib_no, page)
-                if is_purgable(status):
-                    row.append("expired")
+            if n >= start:
+                bib_no = row[0]
+                url = row[2]
+                page = get_html(url, n, total)
+                if not page:
+                    row.append("removed")
                     save2csv(dst_fh, row)
                 else:
-                    save2csv(reject_fh, row)
+                    status = get_ebook_status(None, bib_no, page)
+                    if is_purgable(status):
+                        row.append("expired")
+                        save2csv(dst_fh, row)
+                    else:
+                        save2csv(reject_fh, row)
+            n += 1
 
 
 def get_ebook_status(oid, bid, html):
@@ -109,9 +110,7 @@ def make_request(url, n, total, headers):
         )
         return response
     except Timeout:
-        print("Server timed out. Restarting in 15 sec...")
-        time.sleep(15)
-        make_request(url, headers)
+        raise
 
 
 def get_html(url: str, n: int, total: int, agent: str = "bookops/NYPL") -> bytes:
