@@ -7,6 +7,20 @@ import re
 P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
 
 
+def counted(f):
+    def wrapped(*args, **kwargs):
+        wrapped.calls += 1
+        return f(*args, **kwargs)
+
+    wrapped.calls = 0
+    return wrapped
+
+
+def count_rows(fh: str):
+    with open(fh, "r") as f:
+        return sum(1 for line in f)
+
+
 def dst_main_directory(library: str) -> str:
     """
     Main directory for report files resulting from
