@@ -5,6 +5,8 @@ import re
 
 
 P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
+URL_NYPL = "http://ebooks.nypl.org/ContentDetails.htm?ID="
+URL_BPL = "http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID="
 
 
 def counted(f):

@@ -10,7 +10,13 @@ import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException, Timeout
 
-from overdrive_reconcile.utils import save2csv, create_dst_csv_fh
+from overdrive_reconcile.utils import (
+    URL_NYPL,
+    URL_BPL,
+    save2csv,
+    create_dst_csv_fh,
+    is_reserve_id,
+)
 
 
 # regex patterns for significant pieces of info
@@ -35,6 +41,27 @@ EbookStatus = namedtuple(
     ],
 )
 EbookStatus.__new__.__defaults__ = (None, None, None, None, None, None)
+
+
+def check_status(reserveId: str, library: str) -> None:
+    if not is_reserve_id(reserveId):
+        raise ValueError("Invalid Reserve ID provided.")
+
+    if library == "NYPL":
+        url = f"{URL_NYPL}{reserveId}"
+    elif library == "BPL":
+        url = f"{URL_BPL}{reserveId}"
+
+    page = get_html(url, 1, 1)
+    if not page:
+        print(f"not found - removed")
+    else:
+        status = get_ebook_status(None, reserveId, page)
+        if is_purgable(status):
+            print("found - expired")
+        else:
+            print("found - false positive")
+        print(status)
 
 
 def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:

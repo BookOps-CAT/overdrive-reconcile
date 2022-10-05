@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 
 from .prep import prep_reserve_ids_in_sierra_export, simplye2csv
-from .utils import date_subdirectory
+from .utils import URL_NYPL, URL_BPL, date_subdirectory
 from .webscraper import scrape
 
 
@@ -62,9 +62,9 @@ def reconcile(library: str, sierra_export_fh: str):
     del_fh = f"{subdir}/{library}-for-deletion-verification-required.csv"
 
     if library == "NYPL":
-        url = "http://ebooks.nypl.org/ContentDetails.htm?ID="
+        url = URL_NYPL
     elif library == "BPL":
-        url = "http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID="
+        url = URL_BPL
     else:
         ValueError("Invalid library code provided.")
 

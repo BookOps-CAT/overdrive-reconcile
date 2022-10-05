@@ -3,7 +3,7 @@ import sys
 
 from overdrive_reconcile.reconcile import reconcile
 from overdrive_reconcile.utils import date_subdirectory, count_rows
-from overdrive_reconcile.webscraper import scrape
+from overdrive_reconcile.webscraper import scrape, check_status
 
 
 def main(args: list) -> None:
@@ -19,16 +19,17 @@ def main(args: list) -> None:
         "action",
         help=(
             "'reconcile' runs entire set of scripts | "
-            "'webscrape' runs only webscraping of OverDrive catalog"
+            "'webscrape' runs only webscraping of OverDrive catalog | "
+            "'check-overdrive' runs scraping for a single resource"
         ),
         type=str,
-        choices=["reconcile", "webscrape"],
+        choices=["reconcile", "webscrape", "check-overdrive"],
     )
     parser.add_argument(
         "library", help="'BPL' or 'NYPL'", type=str, choices=["BPL", "NYPL"]
     )
     parser.add_argument(
-        "src_fh",
+        "source",
         help="Sierra export or csv for webscraping source file handle",
         type=str,
     )
@@ -44,9 +45,9 @@ def main(args: list) -> None:
     pargs = parser.parse_args(args)
 
     if pargs.action == "reconcile":
-        reconcile(pargs.library, pargs.src_fh)
+        reconcile(pargs.library, pargs.source)
     if pargs.action == "webscrape":
-        if pargs.src_fh == "default":
+        if pargs.source == "default":
             # assume today's file
             work_dir = date_subdirectory(pargs.library)
             src_fh = (
@@ -55,8 +56,12 @@ def main(args: list) -> None:
             total = count_rows(src_fh) - 1
             scrape(pargs.library, src_fh, total, pargs.start)
         else:
-            total = count_rows(pargs.src_fh) - 1
-            scrape(pargs.library, pargs.src_fh, total, pargs.start)
+            total = count_rows(pargs.source) - 1
+            scrape(pargs.library, pargs.source, total, pargs.start)
+
+    if pargs.action == "check-overdrive":
+        print(f"Checking status of {pargs.source} on OverDrive platform...")
+        check_status(pargs.source, pargs.library)
 
 
 if __name__ == "__main__":
