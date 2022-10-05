@@ -21,11 +21,25 @@ Export following fields from created list: RECORD # (BIBLIOGRAPHIC), MARC Tag 37
 2. Change working directory to the main repo directory
 3. In the command line run the following:
 ```bash
-$ python run.py {library} {path-to-sierra-export-file}
+$ python run.py reconcile {library} {path-to-sierra-export-file}
 ```
 BPL example:
 ```bash
-$ python run.py BPL "C:/temp/overdrive-all-sierra-export.txt"
+$ python run.py reconcile BPL "C:/temp/overdrive-all-sierra-export.txt"
+```
+
+Above routine includes a verification of availability of resources that web scrapes OverDrive catalog for each system. This webscraping is prone to timeouts on OverDrive server. If that happens, simply note the number of the next resource to be checked and restart the process utilizing the following command:
+```bash
+$ python run.py webscrape {library} {data source path} {row to start from} 
+```
+{data source path} is the appropriate `{library}-for-deletion-verification-required.csv` file created by previous scripts. This restarting command can be simplified if run the same day when analysis is initially launched. In this case, instead of providing the full path to data source enter "default", as in the example below:
+
+CLI shows traceback to a timeout error (last processed resource had number 626):
+[![scraping timeout](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/webscraping-error.png)](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/webscraping-error.png)
+
+Restart the process by providing the number of the next resource (627):
+```bash
+$ python run.py webscrape BPL default 627
 ```
 
 ### analysis reports
