@@ -7,12 +7,14 @@ The reconciliation requires Sierra export and access to SimplyE databases.
 ### sierra list creation & export
 
 Use following searches in Sierra to create a list. In case large list files are unavailable use Sierra bib #s to track extracted data and combine partial reports into one file.
+BPL query can be retrieved from Sierra as "2022-Overdrive ALL bibs-tak" saved search, or loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/bpl-marcexpress-sierra-search.json)
+NYPL query can be loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/nypl-marcexpress-sierra-search.json)
 
 #### NYPL
-BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  Call No.  starts with  "enypl"
+BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  MARC Tag 856|u  All Fields don't have  "serialssolutions"    AND BIBLIOGRAPHIC  Call No.  starts with  "enypl"
 
 #### BPL
-BIBLIOGRAPHIC  MARC Tag 003  not equal to  "wasess"    AND BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  CALL #  starts with  "e"
+BIBLIOGRAPHIC  MARC Tag 003  not equal to  "wasess"    AND BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  MARC Tag 856|u  All Fields don't have  "serialssolutions"    AND BIBLIOGRAPHIC  CALL #  starts with  "e"
 
 Export following fields from created list: RECORD # (BIBLIOGRAPHIC), MARC Tag 37|a. Use default export values: field delimiter `,`, text qualifier `"`, repeated field delimiter `;`, maximum field lenght `none`.
 
