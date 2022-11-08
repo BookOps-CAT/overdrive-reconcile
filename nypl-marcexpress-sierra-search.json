@@ -1,0 +1,78 @@
+{
+  "queries": [
+    {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "field": {
+          "marcTag": "037",
+          "subfields": "a"
+        }
+      },
+      "expr": {
+        "op": "not_equal",
+        "operands": [
+          "",
+          ""
+        ]
+      }
+    },
+    "and",
+    {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "field": {
+          "marcTag": "037",
+          "subfields": "b"
+        }
+      },
+      "expr": {
+        "op": "has",
+        "operands": [
+          "overdrive",
+          ""
+        ]
+      }
+    },
+    "and",
+    {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "field": {
+          "marcTag": "856",
+          "subfields": "u"
+        }
+      },
+      "expr": {
+        "op": "all_fields_not_have",
+        "operands": [
+          "serialssolutions",
+          ""
+        ]
+      }
+    },
+    "and",
+    {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "field": {
+          "tag": "c"
+        }
+      },
+      "expr": {
+        "op": "starts_with",
+        "operands": [
+          "enypl",
+          ""
+        ]
+      }
+    }
+  ]
+}
