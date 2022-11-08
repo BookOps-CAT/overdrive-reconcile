@@ -11,9 +11,10 @@ import yaml
 
 def get_reserve_id_query() -> str:
     return """
-        SELECT i.identifier FROM identifiers i 
-        JOIN licensepools lp ON i.id=lp.identifier_id 
-        WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
+        SELECT i.identifier FROM identifiers i
+            JOIN licensepools lp ON i.id = lp.identifier_id
+            JOIN editions e ON lp.presentation_edition_id = e.id
+        WHERE lp.licenses_owned > 0 AND i.type = 'Overdrive ID' AND e.medium != 'Video';
     """
 
 
@@ -70,11 +71,35 @@ def get_reserve_id(library: str, reserve_id: str) -> None:
     )
     stmn = stmn.bindparams(reserve_id=reserve_id)
     with engine.connect() as conn:
-        result = conn.execute(stmn)
+        result = conn.execute(stmn).all()
 
         for row in result:
             # print(row)
             for k, v in row._mapping.items():
                 print(k, v)
 
-        print(f"found {result.rowcount} results.")
+        print(f"found {len(result)} results.")
+
+
+def get_reserve_id_excluding_video(library: str, reserve_id: str) -> None:
+    from sqlalchemy import text
+
+    engine = simplye_connection(library)
+    stmt = text(
+        """
+        SELECT i.identifier
+        FROM identifiers i
+            JOIN licensepools lp ON i.id = lp.identifier_id
+            JOIN editions e ON lp.presentation_edition_id = e.id
+        WHERE i.type = 'Overdrive ID' AND i.identifier=:reserve_id AND e.medium != 'Video';
+        """
+    )
+    stmt = stmt.bindparams(reserve_id=reserve_id)
+    with engine.connect() as conn:
+        result = conn.execute(stmt).all()
+
+        print(f"found {len(result)} results.")
+
+        for row in result:
+            for k, v in row._mapping.items():
+                print(k, v)

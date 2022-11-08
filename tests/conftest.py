@@ -63,9 +63,9 @@ def mock_simplye_sql(monkeypatch):
     def _patch(*args, **kwargs):
         return """
             SELECT i.identifier FROM identifiers i 
-            JOIN licensepools lp ON i.id=lp.identifier_id 
-            WHERE lp.licenses_owned > 0 AND i.type='Overdrive ID'
-            LIMIT 1;
+                JOIN licensepools lp ON i.id=lp.identifier_id
+                JOIN editions e ON lp.presentation_edition_id = e.id
+            WHERE lp.licenses_owned > 0 AND i.type = 'Overdrive ID' AND e.medium != 'Video' LIMIT 5;
         """
 
     monkeypatch.setattr(simplye, "get_reserve_id_query", _patch)
