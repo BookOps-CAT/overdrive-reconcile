@@ -11,6 +11,8 @@ BPL query can be retrieved from Sierra as "2022-Overdrive ALL bibs-tak" saved se
 NYPL query can be loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/nypl-marcexpress-sierra-search.json)
 
 #### NYPL
+start bib: b170902584 end bib: b*
+
 BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  MARC Tag 856|u  All Fields don't have  "serialssolutions"    AND BIBLIOGRAPHIC  Call No.  starts with  "enypl"
 
 #### BPL
