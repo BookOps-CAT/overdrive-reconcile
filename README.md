@@ -7,6 +7,9 @@ The reconciliation requires Sierra export and access to SimplyE databases.
 ### sierra list creation & export
 
 Use following searches in Sierra to create a list. In case large list files are unavailable use Sierra bib #s to track extracted data and combine partial reports into one file.
+
+Creation of one large list in NYPL Sierra tend to fail, and it's a good strategy to use smaller 10k lists at least twice, before running a large one (100k+) - the searched DB slice is getting smaller with increasing start Sierra bib numbers (see below).
+
 BPL query can be retrieved from Sierra as "2022-Overdrive ALL bibs-tak" saved search, or loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/bpl-marcexpress-sierra-search.json)
 NYPL query can be loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/nypl-marcexpress-sierra-search.json)
 
