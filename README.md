@@ -1,10 +1,21 @@
-## overdrive-reconcile
+# overdrive-reconcile
 
 A collection of scripts used to reconcile available electronic resources between NYPL & BPL Sierra and OverDrive Platform.
 
 The reconciliation requires Sierra export and access to SimplyE databases.
+SimplyE credentails should be in YAML file format and have following structure:
+```yaml
+---
+HOST: simplyE_database_URL_here
+USER: db_user_name_here
+DATABASE: db_name_here
+PASSWORD: my_password_here
+```
 
-### sierra list creation & export
+## 1. Verify all available Overdrive MarcExpress files have been loaded
+To begin reconciliation process, verify with staff responsible for loading Overdrive records that no outstanding files in the Overdrive Marketplace and all available records are present in both BPL and NYPL Sierra. Only after receving a confirmation all Overdrive Reserve IDs are in Sierra, begin creating a lists in the ILS for export.
+
+## 2. Sierra list creation & export
 
 Use following searches in Sierra to create a list. In case large list files are unavailable use Sierra bib #s to track extracted data and combine partial reports into one file.
 
@@ -13,19 +24,19 @@ Creation of one large list in NYPL Sierra tend to fail, and it's a good strategy
 BPL query can be retrieved from Sierra as "2022-Overdrive ALL bibs-tak" saved search, or loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/bpl-marcexpress-sierra-search.json)
 NYPL query can be loaded from [this JSON file](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/nypl-marcexpress-sierra-search.json)
 
-#### NYPL
+### NYPL
 start bib: b170902584 end bib: b*
 
 BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  MARC Tag 856|u  All Fields don't have  "serialssolutions"    AND BIBLIOGRAPHIC  Call No.  starts with  "enypl"
 
-#### BPL
+### BPL
 start bib: b112402306 eng bib: b*
 
 BIBLIOGRAPHIC  MARC Tag 003  not equal to  "wasess"    AND BIBLIOGRAPHIC  MARC Tag 037|a  not equal to  ""    AND BIBLIOGRAPHIC  MARC Tag 037|b  has  "overdrive"    AND BIBLIOGRAPHIC  MARC Tag 856|u  All Fields don't have  "serialssolutions"    AND BIBLIOGRAPHIC  CALL #  starts with  "e"
 
 Export following fields from created list: RECORD # (BIBLIOGRAPHIC), MARC Tag 37|a. Use default export values: field delimiter `,`, text qualifier `"`, repeated field delimiter `;`, maximum field lenght `none`.
 
-### launching scripts
+## 3. launching scripts
 1. Activate virtual environment
 2. Change working directory to the main repo directory
 3. In the command line run the following:
@@ -51,7 +62,7 @@ Restart the process by providing the number of the next resource and "default" i
 $ python run.py webscrape BPL default 627
 ```
 
-### analysis reports
+## 4. analysis reports
 
 The reconciliation script creates a designated directory to put all its reports: `overdrive-reconcile/files/{library}/{YYYY-MM-DD}/`
 It creates the following reports:
@@ -76,7 +87,7 @@ Actionable reports have the `FINAL` affix in the title.
 
 `false-positive-for-deletion.csv` includes resources that were not present in the SimplyE database, but were discovered in the ILS and the verification routine (webscraping of OverDrive catalog - see details below) found that in fact they are available to our patrons. This report should be shared with SimplyE devs to mitigate missing in SimplyE titles.
 
-### how this works?
+## how this works?
 
 The script analyzes OverDrive data pulled from ILS (Sierra) and compares it with data pulled from SimplyE database. These two sets acquire information from two different sources: OverDrive Marketplace MARC records and OverDrive API. Resources found in both sets are considered to be available and are left alone. Identification of resources found in the SimplyE database only allow compilation of a MARC file in the OverDrive Marketplace so they are ingested into ILS. Resources found only in Sierra may indicate they are no longer available froin OverDrive. OverDrive API crashes ([SIMPLY-391 issue](https://jira.nypl.org/browse/SIMPLY-3961)) result occasionaly in missing data in SimplyE DB. Deletion verification though webscraping of Overdrive catalog is needed.
 
@@ -84,4 +95,12 @@ The script analyzes OverDrive data pulled from ILS (Sierra) and compares it with
 
 The verification process of missing in Sierra resources is done via web scraping of OverDrive catalog (we do not have access to OverDrive API to do it more efficiently).
 
-### changelog
+## changelog
+### [1.1.0] - (2/14/2024)
+#### Added
++ step in the instruction to confirm all Overdrive MarcExpress records have been loaded to the ILS
++ information about credentails format
+#### Changed
++ local simplyE credentials moved to `~/.cred/.simplyE/` directory
+
+[1.1.0]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.0.0...v1.1.0
