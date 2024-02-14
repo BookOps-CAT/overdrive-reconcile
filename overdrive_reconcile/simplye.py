@@ -1,6 +1,7 @@
 """
 Methods to interact with SimplyE databases
 """
+
 import os
 
 import pandas as pd
@@ -23,9 +24,9 @@ def get_cred_fh(library: str) -> str:
     Determines correct SimplyE credential file
     """
     if library == "BPL":
-        return ".simplyE/bpl_simply_e.yaml"
+        return ".cred/.simplyE/bpl_simply_e.yaml"
     elif library == "NYPL":
-        return ".simplyE/nyp_simply_e.yaml"
+        return ".cred/.simplyE/nyp_simply_e.yaml"
     else:
         raise ValueError("Invalid library code passsed")
 

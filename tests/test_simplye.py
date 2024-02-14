@@ -11,7 +11,10 @@ from overdrive_reconcile.simplye import (
 
 @pytest.mark.parametrize(
     "arg, expectation",
-    [("NYPL", ".simplyE/nyp_simply_e.yaml"), ("BPL", ".simplyE/bpl_simply_e.yaml")],
+    [
+        ("NYPL", ".cred/.simplyE/nyp_simply_e.yaml"),
+        ("BPL", ".cred/.simplyE/bpl_simply_e.yaml"),
+    ],
 )
 def test_get_cred_fh(arg, expectation):
     assert get_cred_fh(arg) == expectation
