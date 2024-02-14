@@ -99,8 +99,21 @@ The verification process of missing in Sierra resources is done via web scraping
 ### [1.1.0] - (2/14/2024)
 #### Added
 + step in the instruction to confirm all Overdrive MarcExpress records have been loaded to the ILS
-+ information about credentails format
++ information about credentials format
++ added requests (2.31.0) to dependencies
 #### Changed
 + local simplyE credentials moved to `~/.cred/.simplyE/` directory
++ updated dependencies:
+  + beautifulsoup4 (4.12.3)
+  + pandas (2.2.0)
+  + pymarc (4.2.2)
+  + SQLAlchemy (2.0.27)
+  + psycopg2 (2.9.9)
++ updated dev dependencies:
+  + black (22.12.0)
+  + pytest (7.4.4)
++ refactored tests based on updated dependencies
+#### Removed
++ removed unused dependencies
 
 [1.1.0]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.0.0...v1.1.0
