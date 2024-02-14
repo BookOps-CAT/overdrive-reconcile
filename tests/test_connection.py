@@ -3,7 +3,7 @@ import os
 import pytest
 import yaml
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine.row import LegacyRow
+from sqlalchemy.engine import Row
 
 
 sql_stmn = """
@@ -20,7 +20,7 @@ def test_bpl_conn(local_bpl_connection):
     with engine.connect() as conn:
         results = conn.execute(text(sql_stmn))
         for r in results:
-            assert isinstance(r, LegacyRow)
+            assert isinstance(r, Row)
             assert isinstance(r[0], str)
             assert len(r[0]) == 36
 
@@ -31,6 +31,6 @@ def test_nypl_conn(local_nypl_connection):
     with engine.connect() as conn:
         results = conn.execute(text(sql_stmn))
         for r in results:
-            assert isinstance(r, LegacyRow)
+            assert isinstance(r, Row)
             assert isinstance(r[0], str)
             assert len(r[0]) == 36

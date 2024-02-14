@@ -35,9 +35,9 @@ def mock_main_dir(monkeypatch, test_main_dir):
 def get_creds(library: str):
     fh = None
     if library == "BPL":
-        fh = ".simplyE/bpl_simply_e.yaml"
+        fh = ".cred/.simplyE/bpl_simply_e.yaml"
     elif library == "NYPL":
-        fh = ".simplyE/nyp_simply_e.yaml"
+        fh = ".cred/.simplyE/nyp_simply_e.yaml"
 
     with open(os.path.join(os.environ["USERPROFILE"], fh), "r") as f:
         data = yaml.safe_load(f)
