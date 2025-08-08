@@ -1,0 +1,36 @@
+name: unit tests
+on: [push, pull_request]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version}}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version}}
+      - name: Install Poetry with pipx
+        run: pipx install poetry
+      - name: Install dependencies with poetry
+        run: poetry install --no-root
+      - name: Run tests
+        run: poetry run pytest -m "not local" --cov=overdrive_reconcile/ --cov-report=xml
+      - name: Send report to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel: true
+          github-token: ${{ secrets.GITHUB_TOKEN}}
+          flag-name: ${{ matrix.python-version}}
+
+  finish:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls finished
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel-finished: true

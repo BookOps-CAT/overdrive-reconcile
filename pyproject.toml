@@ -47,3 +47,15 @@ exclude = '''
     | temp.py
 )
 '''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+	"local: locally run tests to be excluded from CI"
+]
+addopts = '-m "not local" --cov=overdrive_reconcile/'
+
+[tool.coverage.run]
+relative_files = true
+source = ["."]
+omit = ["tests/*"]
