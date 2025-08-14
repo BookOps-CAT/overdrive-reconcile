@@ -17,11 +17,7 @@ def fresh_start(files: list[str]) -> None:
     """
     for file in files:
         if os.path.exists(file):
-            try:
-                os.remove(file)
-            except OSError:
-                print(f"Unable to remove {file}")
-                raise
+            os.remove(file)
 
 
 def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:

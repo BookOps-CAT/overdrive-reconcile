@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 
-import pytest
-
 from overdrive_reconcile.prep import fresh_start, prep_reserve_ids_in_sierra_export
 
 
@@ -20,15 +18,6 @@ def test_fresh_start(tmpdir):
 
     assert os.path.exists(f1) is False
     assert os.path.exists(f2) is False
-
-
-def test_fresh_start_exception(tmpdir, mock_os_error):
-    f = tmpdir.join("foo.csv")
-    f.write("spam")
-    assert os.path.exists(f)
-
-    with pytest.raises(OSError):
-        fresh_start([f])
 
 
 def test_prep_reserve_ids_in_sierra_export(test_main_dir):
