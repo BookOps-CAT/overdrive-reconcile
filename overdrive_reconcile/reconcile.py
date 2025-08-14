@@ -1,12 +1,11 @@
 """
 The main module that runs the reconciliation process.
 """
-from datetime import datetime
 
 import pandas as pd
 
 from .prep import prep_reserve_ids_in_sierra_export, simplye2csv
-from .utils import URL_NYPL, URL_BPL, date_subdirectory
+from .utils import URL_BPL, URL_NYPL, date_subdirectory
 from .webscraper import scrape
 
 
@@ -26,23 +25,14 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str):
     unique_fh = f"{subdir}/{library}-unique-reserveid-sierra.csv"
 
     df["dup"] = df.duplicated(subset=["reserve_id"], keep="last")
-    ddf = df[df["dup"] == True]
-    ddf.to_csv(
-        dups_fh,
-        index=False,
-        header=None,
-        columns=["bib_no", "reserve_id"],
-    )
+    ddf = df[df["dup"]]
+    ddf.to_csv(dups_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     print(
         f"Identified {ddf.shape[0]} duplicate records in Sierra export. Report saved to: {dups_fh}"
     )
 
-    udf = df[df["dup"] == False]
-    udf.to_csv(
-        unique_fh,
-        index=False,
-        columns=["bib_no", "reserve_id"],
-    )
+    udf = df.drop_duplicates(subset=["reserve_id"], keep="last")
+    udf.to_csv(unique_fh, index=False, columns=["bib_no", "reserve_id"])
     print(
         f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. Report saved to: {unique_fh}"
     )
@@ -81,7 +71,6 @@ def reconcile(library: str, sierra_export_fh: str):
     # merge both datasets
     # retireve Sierra data
     print("Merging Sierra and SimplyE sets...")
-    today = datetime.now().date()
     df = pd.read_csv(
         f"{subdir}/{library}-sierra-prepped-reserve-ids.csv",
         names=["bib_no", "reserve_id"],

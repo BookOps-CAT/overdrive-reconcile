@@ -1,5 +1,4 @@
 import pytest
-
 from sqlalchemy.engine.base import Engine
 
 from overdrive_reconcile.simplye import (
@@ -31,7 +30,7 @@ def test_simplye_creds(arg):
     result = get_simplye_creds(arg)
 
     assert isinstance(result, dict)
-    assert result is not {}
+    assert result != {}
     assert sorted(result.keys()) == ["DATABASE", "HOST", "PASSWORD", "USER"]
 
 

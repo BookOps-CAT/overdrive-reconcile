@@ -1,10 +1,6 @@
-import os
-
 import pytest
-import yaml
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Row
-
 
 sql_stmn = """
     SELECT i.identifier FROM identifiers i 
