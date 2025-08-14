@@ -9,7 +9,7 @@ from .utils import URL_BPL, URL_NYPL, date_subdirectory
 from .webscraper import scrape
 
 
-def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str):
+def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
     """
     Deduplicates given dataframe on reserve ID leaving the latest record.
     Does not consiter situation where duplicate reserve ID is present on the
@@ -32,13 +32,13 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str):
     )
 
     udf = df.drop_duplicates(subset=["reserve_id"], keep="last")
-    udf.to_csv(unique_fh, index=False, columns=["bib_no", "reserve_id"])
+    udf.to_csv(unique_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     print(
         f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. Report saved to: {unique_fh}"
     )
 
 
-def reconcile(library: str, sierra_export_fh: str):
+def reconcile(library: str, sierra_export_fh: str) -> None:
     """
     Launches recoinciliation process
     """
@@ -121,7 +121,7 @@ def reconcile(library: str, sierra_export_fh: str):
 
     print("Veryfying records for deletion via web scraping OverDrive platform...")
     print("<go get your coffee - this may take a while>")
-    total = ddf.shape[0] - 1
-    scrape(library, del_fh, total)
+    total = ddf.shape[0]
+    scrape(library, del_fh, str(total))
 
     print("RECONCILIATION COMPLETE...")

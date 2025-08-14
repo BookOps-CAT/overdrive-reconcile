@@ -18,13 +18,15 @@ dependencies = [
     "pandas-stubs (>=2.2.3.241126,<3.0.0)",
     "types-beautifulsoup4 (>=4.12.0.20250516,<5.0.0.0)",
     "types-pyyaml (>=6.0.12.20250516,<7.0.0.0)",
-    "types-requests (>=2.32.4.20250611,<3.0.0.0)"
+    "types-requests (>=2.32.4.20250611,<3.0.0.0)",
+    "bookops-overdrive @ git+https://github.com/BookOps-CAT/bookops-overdrive.git"
 ]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1"
 pytest-cov = "^3.0"
 black = "^24.3"
+pytest-mock = "^3.14.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -62,4 +64,15 @@ addopts = '-m "not local" --cov=overdrive_reconcile/'
 [tool.coverage.run]
 relative_files = true
 source = ["."]
-omit = ["tests/*"]
+omit = [
+    "tests/*",
+    "run.py"
+]
+
+[tool.mypy]
+warn_unused_ignores = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false

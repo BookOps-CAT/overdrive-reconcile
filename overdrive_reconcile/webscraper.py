@@ -79,7 +79,6 @@ def scrape(library: str, src_fh: str, total: str, start: int = 0) -> None:
 
     with open(src_fh, "r") as src:
         reader = csv.reader(src)
-        next(reader)  # skip header
 
         n = 1
         for row in reader:
