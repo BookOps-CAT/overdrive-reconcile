@@ -1,41 +1,10 @@
-from datetime import datetime
 import csv
 import os
 
 import pandas as pd
-from pymarc import MARCReader
 
-
-from .utils import save2csv, is_reserve_id, create_dst_csv_fh
 from . import simplye
-
-
-def extract_reserve_ids_from_backdated_file(library: str, marc_fh: str) -> None:
-    """
-    Parses OverDrive backdated MarcExpress records and outputs
-    found Reserve IDs to a file.
-    May produce invalid results if used for MARC records exported from
-    Sierra (multiple 037s, etc.)
-
-    Args:
-        library:                'BPL' or 'NYPL'
-        marc_fh:                file handle of MARC21 file to be processed
-
-    """
-    if library.upper() not in ("BPL", "NYPL"):
-        raise ValueError("Invalid library argument passed. Must be 'BPL' or 'NYPL'")
-
-    if not isinstance(marc_fh, str) or not marc_fh:
-        raise ValueError("Invalid or missing source MARC file passed.")
-
-    out = create_dst_csv_fh(library, "backdated-reserve-ids")
-    fresh_start([out])
-
-    with open(marc_fh, "rb") as marcfile:
-        reader = MARCReader(marcfile)
-        for bib in reader:
-            reserve_id = bib["037"]["a"].lower()
-            save2csv(out, [reserve_id])
+from .utils import create_dst_csv_fh, is_reserve_id, save2csv
 
 
 def fresh_start(files: list[str]) -> None:
@@ -107,4 +76,4 @@ def simplye2csv(library: str):
     engine = simplye.simplye_connection(library)
     query_stmn = simplye.get_reserve_id_query()
     df = pd.read_sql_query(query_stmn, con=engine)
-    df.to_csv(out, index=False, header=None)
+    df.to_csv(out, index=False, header=False)

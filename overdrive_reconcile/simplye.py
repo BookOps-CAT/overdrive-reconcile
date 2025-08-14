@@ -4,10 +4,9 @@ Methods to interact with SimplyE databases
 
 import os
 
-import pandas as pd
+import yaml
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Engine
-import yaml
 
 
 def get_reserve_id_query() -> str:
@@ -57,50 +56,3 @@ def simplye_connection(library: str) -> Engine:
     conn = f"postgresql://{creds.get('USER')}:{creds.get('PASSWORD')}@{creds.get('HOST')}/{creds.get('DATABASE')}"
     engine = create_engine(conn)
     return engine
-
-
-def get_reserve_id(library: str, reserve_id: str) -> None:
-    from sqlalchemy import text
-
-    engine = simplye_connection(library)
-    stmn = text(
-        """
-    SELECT * FROM identifiers i
-    JOIN licensepools lp ON i.id=lp.identifier_id
-    WHERE i.type='Overdrive ID' AND i.identifier=:reserve_id
-    """
-    )
-    stmn = stmn.bindparams(reserve_id=reserve_id)
-    with engine.connect() as conn:
-        result = conn.execute(stmn).all()
-
-        for row in result:
-            # print(row)
-            for k, v in row._mapping.items():
-                print(k, v)
-
-        print(f"found {len(result)} results.")
-
-
-def get_reserve_id_excluding_video(library: str, reserve_id: str) -> None:
-    from sqlalchemy import text
-
-    engine = simplye_connection(library)
-    stmt = text(
-        """
-        SELECT i.identifier
-        FROM identifiers i
-            JOIN licensepools lp ON i.id = lp.identifier_id
-            JOIN editions e ON lp.presentation_edition_id = e.id
-        WHERE i.type = 'Overdrive ID' AND i.identifier=:reserve_id AND e.medium != 'Video';
-        """
-    )
-    stmt = stmt.bindparams(reserve_id=reserve_id)
-    with engine.connect() as conn:
-        result = conn.execute(stmt).all()
-
-        print(f"found {len(result)} results.")
-
-        for row in result:
-            for k, v in row._mapping.items():
-                print(k, v)

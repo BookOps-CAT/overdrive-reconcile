@@ -1,11 +1,9 @@
-from datetime import datetime
 import os
 
 import pytest
 import yaml
 
-from overdrive_reconcile import utils
-from overdrive_reconcile import simplye
+from overdrive_reconcile import simplye, utils
 
 
 class MockOSError:
@@ -20,8 +18,7 @@ def mock_os_error(monkeypatch):
 
 @pytest.fixture
 def test_main_dir(tmpdir):
-    today = datetime.now().date()
-    return tmpdir.join(f"LIB_CODE")
+    return tmpdir.join("LIB_CODE")
 
 
 @pytest.fixture
@@ -33,11 +30,7 @@ def mock_main_dir(monkeypatch, test_main_dir):
 
 
 def get_creds(library: str):
-    fh = None
-    if library == "BPL":
-        fh = ".cred/.simplyE/bpl_simply_e.yaml"
-    elif library == "NYPL":
-        fh = ".cred/.simplyE/nyp_simply_e.yaml"
+    fh = f".cred/.simplyE/{library.lower()}_simply_e.yaml"
 
     with open(os.path.join(os.environ["USERPROFILE"], fh), "r") as f:
         data = yaml.safe_load(f)

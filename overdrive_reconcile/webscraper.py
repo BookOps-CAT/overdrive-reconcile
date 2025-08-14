@@ -1,23 +1,24 @@
 """
 Use to validate Sierra-SimplyE deletions
 """
-from collections import namedtuple
+
 import csv
 import re
 import time
+from collections import namedtuple
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
-from requests.exceptions import RequestException, Timeout
+from requests.exceptions import Timeout
 
 from overdrive_reconcile.utils import (
-    URL_NYPL,
     URL_BPL,
-    save2csv,
+    URL_NYPL,
     create_dst_csv_fh,
     is_reserve_id,
+    save2csv,
 )
-
 
 # regex patterns for significant pieces of info
 P = re.compile(r".*window.OverDrive.mediaItems = (\{.*\}\});.*", re.DOTALL)
@@ -52,9 +53,9 @@ def check_status(reserveId: str, library: str) -> None:
     elif library == "BPL":
         url = f"{URL_BPL}{reserveId}"
 
-    page = get_html(url, 1, 1)
+    page = get_html(url, 1, "1")
     if not page:
-        print(f"not found - removed")
+        print("not found - removed")
     else:
         status = get_ebook_status(None, reserveId, page)
         if is_purgable(status):
@@ -64,7 +65,7 @@ def check_status(reserveId: str, library: str) -> None:
         print(status)
 
 
-def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
+def scrape(library: str, src_fh: str, total: str, start: int = 0) -> None:
     """
     Launches web scraping of OverDrive catalog
 
@@ -140,7 +141,9 @@ def make_request(url, n, total, headers):
         raise
 
 
-def get_html(url: str, n: int, total: int, agent: str = "bookops/NYPL") -> bytes:
+def get_html(
+    url: str, n: int, total: str, agent: str = "bookops/NYPL"
+) -> Optional[bytes]:
     """
     retrieves html code from given url
     args:
