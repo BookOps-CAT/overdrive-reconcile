@@ -48,10 +48,12 @@ def get_inventory(library: str) -> list[str]:
 
 def get_metadata(library: str, reserve_id: str) -> dict:
     """
-    Retrieves a list of registry IDs from the Overload Digital Inventory API
-    representing the given library's entire digital collection.
+    Retrieves metadata for a title by its registry ID using the
+    Overload Metadata API.
+
     Args:
         library: 'NYPL' or 'BPL'
+        reserve_id: the title's reserve id as a string
     Returns:
         a list of registry IDs
     """
