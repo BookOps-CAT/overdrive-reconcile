@@ -31,7 +31,7 @@ def test_fresh_start_exception(tmpdir, mock_os_error):
         fresh_start([f])
 
 
-def test_prep_reserve_ids_in_sierra_export(test_main_dir, mock_main_dir):
+def test_prep_reserve_ids_in_sierra_export(test_main_dir):
     today = datetime.now().date()
     prep_reserve_ids_in_sierra_export("NYPL", "tests/sierra-export-sample.txt")
     with open(f"{test_main_dir}/{today}/NYPL-sierra-prepped-reserve-ids.csv", "r") as f:
@@ -41,9 +41,7 @@ def test_prep_reserve_ids_in_sierra_export(test_main_dir, mock_main_dir):
         )
 
 
-def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(
-    test_main_dir, mock_main_dir
-):
+def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(test_main_dir):
     today = datetime.now().date()
     prep_reserve_ids_in_sierra_export(
         "NYPL", "tests/sierra-export-sample-no-overdrive-id.txt"
