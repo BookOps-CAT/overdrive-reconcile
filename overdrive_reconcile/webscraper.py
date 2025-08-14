@@ -1,5 +1,5 @@
 """
-Use to validate Sierra-SimplyE deletions
+Use to validate Sierra-Overdrive API deletions
 """
 
 import csv

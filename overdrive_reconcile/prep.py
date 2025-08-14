@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from . import overdrive_session, simplye
+from . import overdrive_session
 from .utils import create_dst_csv_fh, is_reserve_id, save2csv
 
 
@@ -64,21 +64,6 @@ def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
                         save2csv(dst_rejected_fh, [row[0], i])
 
 
-def simplye2csv(library: str) -> None:
-    """
-    Retrieves OverDrive Reserve IDs from given SimplyE database
-    and saves the results to a csv file.
-
-    Args:
-        library:                SimplyE library database code: 'NYPL' or 'BPL'
-    """
-    out = create_dst_csv_fh(library, "simplye-reserve-ids")
-    engine = simplye.simplye_connection(library)
-    query_stmn = simplye.get_reserve_id_query()
-    df = pd.read_sql_query(query_stmn, con=engine)
-    df.to_csv(out, index=False, header=False)
-
-
 def overdrive2csv(library: str) -> None:
     """
     Retrieves OverDrive Reserve IDs from Overdrive Discovery APIs
@@ -87,7 +72,7 @@ def overdrive2csv(library: str) -> None:
     Args:
         library: library system 'NYPL' or 'BPL'
     """
-    out = create_dst_csv_fh(library, "simplye-reserve-ids")
+    out = create_dst_csv_fh(library, "api-reserve-ids")
     inventory = overdrive_session.get_inventory(library=library)
     df = pd.DataFrame(inventory)
     df.to_csv(out, index=False, header=False)
