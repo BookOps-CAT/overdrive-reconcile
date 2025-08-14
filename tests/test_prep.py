@@ -1,34 +1,13 @@
-from datetime import datetime
 import os
+from datetime import datetime
 
 import pytest
 
 from overdrive_reconcile.prep import (
-    extract_reserve_ids_from_backdated_file,
     fresh_start,
     prep_reserve_ids_in_sierra_export,
     simplye2csv,
 )
-
-
-def test_extract_reserve_ids_from_backdated_file(test_main_dir, mock_main_dir):
-    today = datetime.now().date()
-    out = f"{test_main_dir}/{today}/BPL-backdated-reserve-ids.csv"
-    extract_reserve_ids_from_backdated_file("BPL", "./tests/sample.mrc")
-
-    with open(out, "r") as f:
-        assert f.read().strip() == "0e90d7a5-30b8-4d07-9d13-df0e02ea631e"
-
-
-def test_extract_reserve_ids_from_backdated_file_invalid_library():
-    with pytest.raises(ValueError):
-        extract_reserve_ids_from_backdated_file("FOO", "foo.mrc")
-
-
-@pytest.mark.parametrize("arg", [1, None, ""])
-def test_extract_reserve_ids_from_backdated_file_invalid_marc_fh(arg):
-    with pytest.raises(ValueError):
-        extract_reserve_ids_from_backdated_file("BPL", arg)
 
 
 def test_fresh_start(tmpdir):
