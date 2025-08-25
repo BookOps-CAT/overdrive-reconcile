@@ -75,7 +75,7 @@ It creates the following reports:
 + `{library}-for-deletion-verification-required.csv` (temp, work file)
 + `{library}-sierra-prepped-reserve-ids.csv` (temp, work file)
 + `{library}-sierra-rejected-not-overdrive-ids.csv` (work file)
-+ `{library}-api-reserve-ids.csv` (temp, work file)
++ `{library}-overdrive-api-reserve-ids.csv` (temp, work file)
 + `{library}-unique-reserveid-sierra.csv` (temp, work file)
 
 Actionable reports have the `FINAL` affix in the title.

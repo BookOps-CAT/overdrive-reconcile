@@ -28,13 +28,15 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
     ddf = df[df["dup"]]
     ddf.to_csv(dups_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     print(
-        f"Identified {ddf.shape[0]} duplicate records in Sierra export. Report saved to: {dups_fh}"
+        f"Identified {ddf.shape[0]} duplicate records in Sierra export. "
+        f"Report saved to: {dups_fh}"
     )
 
     udf = df.drop_duplicates(subset=["reserve_id"], keep="last")
     udf.to_csv(unique_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     print(
-        f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. Report saved to: {unique_fh}"
+        f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. "
+        f"Report saved to: {unique_fh}"
     )
 
 
@@ -84,7 +86,9 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
         names=["bib_no", "reserve_id"],
     )
     sdf["reserve_id"] = sdf["reserve_id"].str.lower()
-    edf = pd.read_csv(f"{subdir}/{library}-api-reserve-ids.csv", names=["reserve_id"])
+    edf = pd.read_csv(
+        f"{subdir}/{library}-overdrive-api-reserve-ids.csv", names=["reserve_id"]
+    )
     edf["reserve_id"] = edf["reserve_id"].str.lower()
 
     print("Launching analysis...")
@@ -114,7 +118,8 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
         del_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
     )
     print(
-        f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. Report saved to: {del_fh}"
+        f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. "
+        f"Report saved to: {del_fh}"
     )
 
     print("Veryfying records for deletion via web scraping OverDrive platform...")

@@ -68,7 +68,7 @@ def overdrive2csv(library: str) -> None:
     Args:
         library: library system 'NYPL' or 'BPL'
     """
-    out = create_dst_csv_fh(library, "api-reserve-ids")
+    out = create_dst_csv_fh(library, "overdrive-api-reserve-ids")
     inventory = overdrive_session.get_inventory(library=library)
     df = pd.DataFrame(inventory)
     df.to_csv(out, index=False, header=False)
