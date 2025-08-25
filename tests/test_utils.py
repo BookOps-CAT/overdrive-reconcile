@@ -1,17 +1,16 @@
-import csv
-from datetime import datetime
 import os
+from datetime import datetime
 
 import pytest
 
 from overdrive_reconcile.utils import (
-    is_reserve_id,
-    counted,
     count_rows,
-    save2csv,
+    counted,
     create_dst_csv_fh,
     date_subdirectory,
     dst_main_directory,
+    is_reserve_id,
+    save2csv,
 )
 
 
@@ -63,13 +62,13 @@ def test_dst_main_directory(arg):
 
 
 @pytest.mark.parametrize("arg", ["BPL", "NYPL"])
-def test_date_subdirectory(test_main_dir, mock_main_dir, arg):
+def test_date_subdirectory(test_main_dir, arg):
     today = datetime.now().date()
     assert date_subdirectory(arg) == f"{test_main_dir}/{today}"
     assert os.path.exists(f"{test_main_dir}/{today}")
 
 
-def test_create_dst_csv_fh(test_main_dir, mock_main_dir):
+def test_create_dst_csv_fh(test_main_dir):
     today = datetime.now().date()
     subdir = f"{test_main_dir}/{today}"
     assert create_dst_csv_fh("BPL", "foo") == f"{subdir}/BPL-foo.csv"

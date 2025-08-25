@@ -4,7 +4,7 @@ The main module that runs the reconciliation process.
 
 import pandas as pd
 
-from .prep import prep_reserve_ids_in_sierra_export, simplye2csv
+from .prep import overdrive2csv, prep_reserve_ids_in_sierra_export
 from .utils import URL_BPL, URL_NYPL, date_subdirectory
 from .webscraper import scrape
 
@@ -28,13 +28,15 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
     ddf = df[df["dup"]]
     ddf.to_csv(dups_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     print(
-        f"Identified {ddf.shape[0]} duplicate records in Sierra export. Report saved to: {dups_fh}"
+        f"Identified {ddf.shape[0]} duplicate records in Sierra export. "
+        f"Report saved to: {dups_fh}"
     )
 
     udf = df.drop_duplicates(subset=["reserve_id"], keep="last")
     udf.to_csv(unique_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     print(
-        f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. Report saved to: {unique_fh}"
+        f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. "
+        f"Report saved to: {unique_fh}"
     )
 
 
@@ -64,13 +66,13 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     print("Parsing Sierra Export data...")
     prep_reserve_ids_in_sierra_export(library, sierra_export_fh)
 
-    # prepare data from SimplyE
-    print(f"Retrieving data from {library} SimplyE DB...")
-    simplye2csv(library)
+    # prepare data from Overdrive Digital Inventory API
+    print(f"Retrieving data from {library} Overdrive Digital Inventory API DB...")
+    overdrive2csv(library)
 
     # merge both datasets
     # retireve Sierra data
-    print("Merging Sierra and SimplyE sets...")
+    print("Merging Sierra and Overdrive API sets...")
     df = pd.read_csv(
         f"{subdir}/{library}-sierra-prepped-reserve-ids.csv",
         names=["bib_no", "reserve_id"],
@@ -78,14 +80,14 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     dedup_on_reserve_id(library, df, subdir)
 
     # use deduped sierra reserve ids for analysis
-    print("Normalizing Sierra and SimplyE Reserve IDs...")
+    print("Normalizing Sierra and Overdrive API Reserve IDs...")
     sdf = pd.read_csv(
         f"{subdir}/{library}-unique-reserveid-sierra.csv",
         names=["bib_no", "reserve_id"],
     )
     sdf["reserve_id"] = sdf["reserve_id"].str.lower()
     edf = pd.read_csv(
-        f"{subdir}/{library}-simplye-reserve-ids.csv", names=["reserve_id"]
+        f"{subdir}/{library}-overdrive-api-reserve-ids.csv", names=["reserve_id"]
     )
     edf["reserve_id"] = edf["reserve_id"].str.lower()
 
@@ -116,7 +118,8 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
         del_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
     )
     print(
-        f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. Report saved to: {del_fh}"
+        f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. "
+        f"Report saved to: {del_fh}"
     )
 
     print("Veryfying records for deletion via web scraping OverDrive platform...")
