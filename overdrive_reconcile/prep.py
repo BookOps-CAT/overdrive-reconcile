@@ -47,7 +47,7 @@ def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
 
     with open(src_fh, "r") as csvfile:
         reader = csv.reader(csvfile)
-        reader.__next__()
+        next(reader)
         for row in reader:
             if len(row[1]) == 36:
                 save2csv(dst_validated_fh, row)
