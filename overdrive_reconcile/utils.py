@@ -1,8 +1,7 @@
 import csv
-from datetime import datetime
 import os
 import re
-
+from datetime import datetime
 
 P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
 URL_NYPL = "http://ebooks.nypl.org/ContentDetails.htm?ID="
@@ -91,3 +90,39 @@ def save2csv(dst_fh, row):
             quoting=csv.QUOTE_MINIMAL,
         )
         out.writerow(row)
+
+
+def logger_dict_config() -> dict:
+    """Create a dictionary to configure logger."""
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "basic": {
+                "format": "%(app)s-%(asctime)s-%(filename)s-%(lineno)d-%(levelname)s-%(message)s",  # noqa: E501
+                "defaults": {"app": "overdrive_reconcile"},
+            },
+        },
+        "handlers": {
+            "stream": {
+                "class": "logging.StreamHandler",
+                "formatter": "basic",
+                "level": "DEBUG",
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "basic",
+                "level": "DEBUG",
+                "filename": "overdrive_reconcile.log",
+                "maxBytes": 10 * 1024 * 1024,
+                "backupCount": 5,
+            },
+        },
+        "loggers": {
+            "overdrive_reconcile": {
+                "handlers": ["stream", "file"],
+                "level": "DEBUG",
+                "propagate": True,
+            },
+        },
+    }
