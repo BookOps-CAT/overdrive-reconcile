@@ -3,6 +3,7 @@ Use to validate Sierra-Overdrive API deletions
 """
 
 import csv
+import logging
 import re
 import time
 from collections import namedtuple
@@ -20,6 +21,7 @@ from overdrive_reconcile.utils import (
     save2csv,
 )
 
+logger = logging.getLogger(__name__)
 # regex patterns for significant pieces of info
 P = re.compile(r".*window.OverDrive.mediaItems = (\{.*\}\});.*", re.DOTALL)
 P_AVAILABLE = re.compile(r'.*"isAvailable":(true|false),".*', re.DOTALL)
@@ -132,7 +134,7 @@ def get_ebook_status(oid, bid, html):
 def make_request(url, n, total, headers):
     try:
         response = requests.get(url, headers=headers, timeout=10)
-        print(
+        logger.debug(
             f"({n} of {total}) Requested page: {response.url} == {response.status_code}"
         )
         return response
