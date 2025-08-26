@@ -30,3 +30,4 @@ files/
 *.gz
 !tests/sample.mrc
 !tests/for-deletion-sample.csv
+*.log
