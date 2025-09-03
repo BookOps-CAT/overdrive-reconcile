@@ -28,8 +28,7 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
     dups_fh = f"{subdir}/{library}-FINAL-duplicate-reserveid-sierra.csv"
     unique_fh = f"{subdir}/{library}-unique-reserveid-sierra.csv"
 
-    df["dup"] = df.duplicated(subset=["reserve_id"], keep="last")
-    ddf = df[df["dup"]]
+    ddf = df[df.duplicated(subset=["reserve_id"], keep="last")]
     ddf.to_csv(dups_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     logger.info(
         f"Identified {ddf.shape[0]} duplicate records in Sierra export. "
@@ -100,7 +99,9 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     adf = pd.merge(sdf, edf, on="reserve_id")
     adf["url"] = url + adf["reserve_id"].astype(str)
 
-    adf.to_csv(avail_fh, index=False, columns=["bib_no", "reserve_id", "url"])
+    adf.to_csv(
+        avail_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
+    )
     logger.info(
         f"Identified {df.shape[0]} resources available. Report saved to: {avail_fh}"
     )
@@ -111,7 +112,7 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
 
     # find missing resources
     logger.debug("Identifying missing in Sierra Reserve IDs.")
-    mdf = fdf[fdf["_merge"] == "right_only"]
+    mdf = fdf[fdf["_merge"] == "right_only"].copy()
     mdf["url"] = url + mdf["reserve_id"].astype(str)
     mdf.to_csv(miss_fh, index=False, header=False, columns=["reserve_id", "url"])
     logger.info(
@@ -120,7 +121,7 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
 
     # find resources for deletion
     logger.debug("Finding resources to be deleted in Sierra.")
-    ddf = fdf[fdf["_merge"] == "left_only"]
+    ddf = fdf[fdf["_merge"] == "left_only"].copy()
     ddf["url"] = url + ddf["reserve_id"].astype(str)
     ddf.to_csv(
         del_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
