@@ -38,4 +38,5 @@ def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(test_main_dir):
     with open(
         f"{test_main_dir}/{today}/NYPL-sierra-rejected-not-overdrive-ids.csv", "r"
     ) as f:
+        next(f)
         assert f.read() == "b202231288,0012252617\n"
