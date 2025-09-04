@@ -14,10 +14,7 @@ from bs4 import BeautifulSoup
 from requests.exceptions import Timeout
 
 from overdrive_reconcile.utils import (
-    URL_BPL,
-    URL_NYPL,
     create_dst_csv_fh,
-    is_reserve_id,
     save2csv,
 )
 
@@ -39,27 +36,6 @@ class EbookStatus:
     copies_owned: str = ""
     for_removal: Optional[bool] = None
     owned: Optional[bool] = None
-
-
-def check_status(reserveId: str, library: str) -> None:
-    if not is_reserve_id(reserveId):
-        raise ValueError("Invalid Reserve ID provided.")
-
-    if library == "NYPL":
-        url = f"{URL_NYPL}{reserveId}"
-    elif library == "BPL":
-        url = f"{URL_BPL}{reserveId}"
-
-    page = get_html(url, 1, 1)
-    if not page:
-        print("not found - removed")
-    else:
-        status = get_ebook_status(reserveId, page)
-        if is_purgable(status):
-            print("found - expired")
-        else:
-            print("found - false positive")
-        print(status)
 
 
 def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
