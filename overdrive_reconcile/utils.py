@@ -8,16 +8,7 @@ URL_NYPL = "http://ebooks.nypl.org/ContentDetails.htm?ID="
 URL_BPL = "http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID="
 
 
-def counted(f):
-    def wrapped(*args, **kwargs):
-        wrapped.calls += 1
-        return f(*args, **kwargs)
-
-    wrapped.calls = 0
-    return wrapped
-
-
-def count_rows(fh: str):
+def count_rows(fh: str) -> int:
     with open(fh, "r") as f:
         return sum(1 for line in f)
 
@@ -43,7 +34,7 @@ def date_subdirectory(library: str) -> str:
     return date_dir
 
 
-def create_dst_csv_fh(library: str, name: str):
+def create_dst_csv_fh(library: str, name: str) -> str:
     """
     Creates csv file handle
 
@@ -73,7 +64,7 @@ def is_reserve_id(i: str) -> bool:
         return False
 
 
-def save2csv(dst_fh, row):
+def save2csv(dst_fh: str, row: list[str]) -> None:
     """
     Appends a list with data to a dst_fh csv
     args:
