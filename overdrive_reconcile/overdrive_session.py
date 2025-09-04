@@ -44,27 +44,3 @@ def get_inventory(library: str) -> list[str]:
         inventory = session.get(response.json()["files"][0]["fileUrl"])
         out.extend(inventory.json()["reserveIds"])
     return out
-
-
-def get_metadata(library: str, reserve_id: str) -> dict:
-    """
-    Retrieves metadata for a title by its registry ID using the
-    Overload Metadata API.
-
-    Args:
-        library: 'NYPL' or 'BPL'
-        reserve_id: the title's reserve id as a string
-    Returns:
-        a list of registry IDs
-    """
-    creds = get_overdrive_api_creds(library=library)
-    token = OverdriveAccessToken(key=creds["CLIENT_KEY"], secret=creds["CLIENT_SECRET"])
-    out = {}
-    with OverdriveSession(authorization=token) as session:
-        coll_token_resp = session.get_library_account_info(int(creds["LIBRARY_ID"]))
-        coll_token = coll_token_resp.json()["collectionToken"]
-        response = session.get_title_metadata(
-            collectionToken=coll_token, reserveId=reserve_id
-        )
-        out.update(response.json())
-    return out

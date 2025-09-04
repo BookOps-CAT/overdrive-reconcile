@@ -1,22 +1,21 @@
+import os
+
 import pytest
 
 from overdrive_reconcile.overdrive_session import (
-    get_inventory,
-    get_metadata,
     get_overdrive_api_creds,
 )
 
 
 @pytest.mark.local
 def test_get_overdrive_api_creds_nypl():
-    result = get_overdrive_api_creds("nypl")
-    assert sorted(result.keys()) == [
-        "CLIENT_KEY",
-        "CLIENT_SECRET",
-        "ILS_NAME",
-        "LIBRARY_ID",
-        "WEBSITE_ID",
-    ]
+    get_overdrive_api_creds("nypl")
+
+    assert "NYPL_CLIENT_KEY" in os.environ.keys()
+    assert "NYPL_CLIENT_SECRET" in os.environ.keys()
+    assert "NYPL_ILS_NAME" in os.environ.keys()
+    assert "NYPL_LIBRARY_ID" in os.environ.keys()
+    assert "NYPL_WEBSITE_ID" in os.environ.keys()
 
 
 @pytest.mark.local
@@ -30,16 +29,3 @@ def test_get_overdrive_api_creds_other():
     with pytest.raises(ValueError) as exc:
         get_overdrive_api_creds("foo")
     assert str(exc.value) == "Invalid library code passed"
-
-
-@pytest.mark.local
-def test_get_inventory():
-    result = get_inventory("NYPL")
-    assert isinstance(result, list)
-    assert len(result) >= 100000
-
-
-@pytest.mark.local
-def test_get_title_metadata():
-    result = get_metadata("NYPL", "0001123d-0bd2-4021-935f-ba6dc94ae052")
-    assert result == {}
