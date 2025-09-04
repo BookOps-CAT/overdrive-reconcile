@@ -1,10 +1,12 @@
-import csv
+import logging
 import os
 
 import pandas as pd
 
 from . import overdrive_session
-from .utils import create_dst_csv_fh, is_reserve_id, save2csv
+from .utils import create_dst_csv_fh
+
+logger = logging.getLogger(__name__)
 
 
 def fresh_start(files: list[str]) -> None:
@@ -44,20 +46,16 @@ def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
 
     # cleanup any previous jobs
     fresh_start([dst_validated_fh, dst_rejected_fh])
+    df = pd.read_csv(src_fh, dtype=str, names=["bib_id", "reserve_id"])
 
-    with open(src_fh, "r") as csvfile:
-        reader = csv.reader(csvfile)
-        reader.__next__()
-        for row in reader:
-            if len(row[1]) == 36:
-                save2csv(dst_validated_fh, row)
-            else:
-                ids = [i.replace('"', "") for i in row[1].split(";")]
-                for i in ids:
-                    if is_reserve_id(i):
-                        save2csv(dst_validated_fh, [row[0], i])
-                    else:
-                        save2csv(dst_rejected_fh, [row[0], i])
+    df["reserve_id"] = df["reserve_id"].str.replace('"', "")
+    df["reserve_id"] = df["reserve_id"].str.split(";")
+    df = df.explode("reserve_id")
+
+    valid_reserve_id = df["reserve_id"].str.fullmatch(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
+
+    df[valid_reserve_id].to_csv(dst_validated_fh, index=False, header=False)
+    df[~valid_reserve_id].to_csv(dst_rejected_fh, index=False, header=False)
 
 
 def overdrive2csv(library: str) -> None:
