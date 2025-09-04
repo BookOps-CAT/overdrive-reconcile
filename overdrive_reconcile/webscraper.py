@@ -59,7 +59,7 @@ def check_status(reserveId: str, library: str) -> None:
     if not page:
         print("not found - removed")
     else:
-        status = get_ebook_status(None, reserveId, page)
+        status = get_ebook_status(reserveId, page)
         if is_purgable(status):
             print("found - expired")
         else:
@@ -92,7 +92,7 @@ def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
                     row.append("removed")
                     save2csv(dst_fh, row)
                 else:
-                    status = get_ebook_status(None, bib_no, page)
+                    status = get_ebook_status(bib_no, page)
                     if is_purgable(status):
                         row.append("expired")
                         save2csv(dst_fh, row)
@@ -101,7 +101,7 @@ def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
             n += 1
 
 
-def get_ebook_status(oid, bid, html):
+def get_ebook_status(bid: str, html: bytes) -> EbookStatus:
     """
     parses HTML, finds significant portion of metadata in document head, and
     interprets important bits, such as availability of ebook, ownership,
@@ -191,7 +191,7 @@ def is_purgable(ebook_status: EbookStatus) -> bool:
         return True
 
 
-def update_status(metadata, ebook_status):
+def update_status(metadata: str, ebook_status: EbookStatus) -> EbookStatus:
     """
     finds significant data in html.head.script
     args:
