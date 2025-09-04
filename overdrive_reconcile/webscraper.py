@@ -55,7 +55,7 @@ def check_status(reserveId: str, library: str) -> None:
     elif library == "BPL":
         url = f"{URL_BPL}{reserveId}"
 
-    page = get_html(url, 1, "1")
+    page = get_html(url, 1, 1)
     if not page:
         print("not found - removed")
     else:
@@ -67,7 +67,7 @@ def check_status(reserveId: str, library: str) -> None:
         print(status)
 
 
-def scrape(library: str, src_fh: str, total: str, start: int = 0) -> None:
+def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
     """
     Launches web scraping of OverDrive catalog
 
@@ -131,19 +131,8 @@ def get_ebook_status(oid, bid, html):
     return ebook_status
 
 
-def make_request(url, n, total, headers):
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        logger.debug(
-            f"({n} of {total}) Requested page: {response.url} == {response.status_code}"
-        )
-        return response
-    except Timeout:
-        raise
-
-
 def get_html(
-    url: str, n: int, total: str, agent: str = "bookops/NYPL"
+    url: str, n: int, total: int, agent: str = "bookops/NYPL"
 ) -> Optional[bytes]:
     """
     retrieves html code from given url
@@ -160,7 +149,13 @@ def get_html(
 
     headers = {"user-agent": agent}
 
-    response = make_request(url, n, total, headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        logger.debug(
+            f"({n} of {total}) Requested page: {response.url} == {response.status_code}"
+        )
+    except Timeout:
+        raise
 
     if response.status_code == requests.codes.ok:
         return response.content
@@ -252,9 +247,3 @@ def update_status(metadata, ebook_status):
     ebook_status = ebook_status._replace(for_removal=for_removal)
 
     return ebook_status
-
-
-if __name__ == "__main__":
-    import sys
-
-    scrape(sys.argv[1], sys.argv[2], sys.argv[3])
