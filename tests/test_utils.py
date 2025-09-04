@@ -5,23 +5,12 @@ import pytest
 
 from overdrive_reconcile.utils import (
     count_rows,
-    counted,
     create_dst_csv_fh,
     date_subdirectory,
     dst_main_directory,
     is_reserve_id,
     save2csv,
 )
-
-
-def test_counted():
-    @counted
-    def some_func():
-        return None
-
-    some_func()
-    some_func()
-    assert some_func.calls == 2
 
 
 def test_count_rows():
