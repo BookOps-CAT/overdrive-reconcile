@@ -6,7 +6,7 @@ import csv
 import logging
 import re
 import time
-from collections import namedtuple
+from dataclasses import dataclass
 from typing import Optional
 
 import requests
@@ -31,19 +31,14 @@ P_ALWAYS_AVAILABLE = re.compile(r'.*"availabilityType":"always".*', re.DOTALL)
 P_OWNED_COPIES = re.compile(r'.*"ownedCopies":(\d{1,}),".*', re.DOTALL)
 
 
-# ebook status data construct
-EbookStatus = namedtuple(
-    "EbookStatus",
-    [
-        "available",
-        "owned",
-        "always_available",
-        "copies_available",
-        "copies_owned",
-        "for_removal",
-    ],
-)
-EbookStatus.__new__.__defaults__ = (None, None, None, None, None, None)
+@dataclass
+class EbookStatus:
+    always_available: Optional[bool] = None
+    available: Optional[bool] = None
+    copies_available: str = ""
+    copies_owned: str = ""
+    for_removal: Optional[bool] = None
+    owned: Optional[bool] = None
 
 
 def check_status(reserveId: str, library: str) -> None:
@@ -207,43 +202,38 @@ def update_status(metadata: str, ebook_status: EbookStatus) -> EbookStatus:
     if match_availability:
         available = match_availability.group(1)
         if available == "true":
-            available = True
+            ebook_status.available = True
         elif available == "false":
-            available = False
+            ebook_status.available = False
         else:
-            available = None
-        ebook_status = ebook_status._replace(available=available)
-
+            ebook_status.available = None
     # title owned
     match_owned = P_OWNED.match(metadata)
     if match_owned:
         owned = match_owned.group(1)
         if owned == "true":
-            owned = True
+            ebook_status.owned = True
         elif owned == "false":
-            owned = False
+            ebook_status.owned = False
         else:
-            owned = None
-        ebook_status = ebook_status._replace(owned=owned)
+            ebook_status.owned = None
 
     # always available
     match_always_available = P_ALWAYS_AVAILABLE.match(metadata)
     if match_always_available:
-        ebook_status = ebook_status._replace(always_available=True)
+        ebook_status.always_available = True
 
     # copies available
     match_copies_available = P_AVAILABLE_COPIES.match(metadata)
     if match_copies_available:
-        ebook_status = ebook_status._replace(
-            copies_available=match_copies_available.group(1)
-        )
+        ebook_status.copies_available = match_copies_available.group(1)
 
     # copies owned
     match_copies_owned = P_OWNED_COPIES.match(metadata)
     if match_copies_owned:
-        ebook_status = ebook_status._replace(copies_owned=match_copies_owned.group(1))
+        ebook_status.copies_owned = match_copies_owned.group(1)
 
     for_removal = is_purgable(ebook_status)
-    ebook_status = ebook_status._replace(for_removal=for_removal)
+    ebook_status.for_removal = for_removal
 
     return ebook_status
