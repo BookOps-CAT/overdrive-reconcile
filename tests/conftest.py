@@ -1,4 +1,5 @@
 import pytest
+from requests.exceptions import Timeout
 
 from overdrive_reconcile import utils
 
@@ -22,3 +23,55 @@ def test_for_deletion_csv(mocker):
     ]
     mock_file = mocker.mock_open(read_data="\n".join(lines))
     mocker.patch("builtins.open", mock_file)
+
+
+class MockHTTPResponse:
+    def __init__(self, stub_json: dict, status_code: int = 200, url: str = ""):
+        self.status_code = status_code
+        self.stub_json = stub_json
+        self.url = url
+
+    @property
+    def content(self):
+        content = ""
+        for k, v in self.stub_json.items():
+            if isinstance(v, bool):
+                v = str(v).lower()
+            content += f'"{k}":{v},'
+        return bytes(content, encoding="utf-8")
+
+    @property
+    def ok(self):
+        if self.status_code == 200:
+            return True
+        return False
+
+    def json(self):
+        return self.stub_json
+
+    def raise_for_status(self):
+        pass
+
+
+@pytest.fixture
+def mock_webscrape(monkeypatch):
+    def mock_html(*args, **kwargs):
+        return MockHTTPResponse({"isAvailable": False}, url=args[0])
+
+    monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_html)
+
+
+@pytest.fixture
+def mock_webscrape_404(monkeypatch):
+    def mock_html(*args, **kwargs):
+        return MockHTTPResponse({}, url=args[0], status_code=404)
+
+    monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_html)
+
+
+@pytest.fixture
+def mock_webscrape_timeout(monkeypatch):
+    def mock_timeout(*args, **kwargs):
+        raise Timeout
+
+    monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_timeout)
