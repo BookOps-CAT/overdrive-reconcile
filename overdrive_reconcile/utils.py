@@ -2,6 +2,7 @@ import csv
 import os
 import re
 from datetime import datetime
+from typing import Any
 
 P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
 URL_NYPL = "http://ebooks.nypl.org/ContentDetails.htm?ID="
@@ -83,7 +84,7 @@ def save2csv(dst_fh: str, row: list[str]) -> None:
         out.writerow(row)
 
 
-def logger_dict_config() -> dict:
+def logger_dict_config() -> dict[str, Any]:
     """Create a dictionary to configure logger."""
     return {
         "version": 1,

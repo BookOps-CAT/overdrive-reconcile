@@ -9,12 +9,13 @@ from overdrive_reconcile.utils import (
     date_subdirectory,
     dst_main_directory,
     is_reserve_id,
+    logger_dict_config,
     save2csv,
 )
 
 
-def test_count_rows():
-    assert count_rows("tests/for-deletion-sample.csv") == 3
+def test_count_rows(test_for_deletion_csv):
+    assert count_rows("foo.csv") == 2
 
 
 @pytest.mark.parametrize(
@@ -61,3 +62,17 @@ def test_create_dst_csv_fh(test_main_dir):
     today = datetime.now().date()
     subdir = f"{test_main_dir}/{today}"
     assert create_dst_csv_fh("BPL", "foo") == f"{subdir}/BPL-foo.csv"
+
+
+def test_logger_dict_confit():
+    logger_config = logger_dict_config()
+    assert sorted(list(logger_config.keys())) == [
+        "disable_existing_loggers",
+        "formatters",
+        "handlers",
+        "loggers",
+        "version",
+    ]
+    assert len(logger_config["formatters"].keys()) == 1
+    assert len(logger_config["handlers"].keys()) == 2
+    assert len(logger_config["loggers"].keys()) == 1
