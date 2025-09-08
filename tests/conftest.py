@@ -1,8 +1,16 @@
+import datetime
+import os
+
 import pandas as pd
 import pytest
 from requests.exceptions import Timeout
 
 from overdrive_reconcile import utils
+
+
+@pytest.fixture(autouse=True)
+def set_caplog_level(caplog):
+    caplog.set_level("DEBUG")
 
 
 @pytest.fixture
@@ -52,6 +60,25 @@ class MockHTTPResponse:
 
     def raise_for_status(self):
         pass
+
+
+@pytest.fixture
+def mock_creds(mocker, mock_now):
+    env_dict = {"USERPROFILE": "test"}
+    creds = {
+        "CLIENT_KEY": "NYPL",
+        "CLIENT_SECRET": "foo",
+        "COLL_TOKEN": "bar",
+        "COLL_TOKEN_EXPIRATION": f"{(datetime.datetime.now() + datetime.timedelta(days=5)).strftime('%Y-%m-%d')}",
+        "LIBRARY_ID": "1",
+    }
+    yaml_string = ""
+    for k, v in creds.items():
+        env_dict[f"NYPL_{k}"] = v
+        yaml_string += f"{k}: '{v}'\n"
+    m = mocker.mock_open(read_data=yaml_string)
+    mocker.patch("overdrive_reconcile.overdrive_session.open", m)
+    mocker.patch.dict(os.environ, env_dict)
 
 
 @pytest.fixture

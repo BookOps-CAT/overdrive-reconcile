@@ -80,7 +80,7 @@ def test_scrape(test_csv, test_main_dir, mock_webscrape):
     scrape("NYPL", "for-deletion-sample.csv", 2)
 
     with open(
-        f"{test_main_dir}/2025-07-01/NYPL-FINAL-for-deletion-verified-resources.csv",
+        f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
         "r",
     ) as f:
         assert len(f.read().strip()) > 0
@@ -90,7 +90,7 @@ def test_scrape_404(test_csv, test_main_dir, mock_webscrape_404):
     scrape("NYPL", "for-deletion-sample.csv", 2)
 
     with open(
-        f"{test_main_dir}/2025-07-01/NYPL-FINAL-for-deletion-verified-resources.csv",
+        f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
         "r",
     ) as f:
         assert len(f.read().strip()) > 0
