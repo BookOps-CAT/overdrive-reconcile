@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 import pytest
+from bookops_overdrive import OverdriveSession
 from requests.exceptions import Timeout
 
 from overdrive_reconcile import utils
@@ -42,11 +43,10 @@ class MockHTTPResponse:
 
     @property
     def content(self):
-        content = ""
-        for k, v in self.stub_json.items():
-            if isinstance(v, bool):
-                v = str(v).lower()
-            content += f'"{k}":{v},'
+        if "content" in self.stub_json:
+            content = self.stub_json["content"]
+        else:
+            content = "".join([f'"{k}":"{v}"' for k, v in self.stub_json.items()])
         return bytes(content, encoding="utf-8")
 
     @property
@@ -60,6 +60,29 @@ class MockHTTPResponse:
 
     def raise_for_status(self):
         pass
+
+
+@pytest.fixture
+def mock_now(monkeypatch) -> None:
+    class MockNow(datetime.datetime):
+        @classmethod
+        def now(cls, tzinfo=None) -> "MockNow":
+            return cls(2025, 1, 1, 1, 0, 0, 0, tzinfo=None)
+
+    monkeypatch.setattr(datetime, "datetime", MockNow)
+    monkeypatch.setattr("overdrive_reconcile.utils.datetime", MockNow)
+
+
+@pytest.fixture
+def mock_expired_coll_token(monkeypatch, mock_creds) -> None:
+    class MockNow(datetime.datetime):
+        @classmethod
+        def now(cls, tzinfo=None) -> "MockNow":
+            return cls(2025, 6, 1, 1, 0, 0, 0, tzinfo=None)
+
+    monkeypatch.setattr(
+        "overdrive_reconcile.overdrive_session.datetime.datetime", MockNow
+    )
 
 
 @pytest.fixture
@@ -82,15 +105,19 @@ def mock_creds(mocker, mock_now):
 
 
 @pytest.fixture
-def mock_webscrape(monkeypatch):
+def mock_webscrape(monkeypatch, mock_now):
+    content = (
+        '<script>window.OverDrive.mediaItems = {"1":{"isAvailable":true,}};</script>'
+    )
+
     def mock_html(*args, **kwargs):
-        return MockHTTPResponse({"isAvailable": False}, url=args[0])
+        return MockHTTPResponse({"content": content}, url=args[0])
 
     monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_html)
 
 
 @pytest.fixture
-def mock_webscrape_404(monkeypatch):
+def mock_webscrape_404(monkeypatch, mock_now):
     def mock_html(*args, **kwargs):
         return MockHTTPResponse({}, url=args[0], status_code=404)
 
@@ -98,11 +125,60 @@ def mock_webscrape_404(monkeypatch):
 
 
 @pytest.fixture
-def mock_webscrape_timeout(monkeypatch):
+def mock_webscrape_timeout(monkeypatch, mock_now):
     def mock_timeout(*args, **kwargs):
         raise Timeout
 
     monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_timeout)
+
+
+@pytest.fixture
+def mock_webscrape_false_positive(monkeypatch, mock_now):
+    content = '<script></script><script>window.OverDrive.mediaItems = {"1":{"availabilityType":"always"}};</script>'
+
+    def mock_html(*args, **kwargs):
+        return MockHTTPResponse({"content": content}, url=args[0])
+
+    monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_html)
+
+
+@pytest.fixture
+def mock_webscrape_no_match(monkeypatch, mock_now):
+    def mock_html(*args, **kwargs):
+        return MockHTTPResponse({"content": "<script></script>"}, url=args[0])
+
+    monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_html)
+
+
+@pytest.fixture
+def mock_session_response(monkeypatch, mock_creds):
+    reserve_ids = [
+        "00000000-0000-0000-0000-000000000000",
+        "11111111-1111-1111-1111-111111111111",
+    ]
+
+    def mock_access_token_response(*args, **kwargs):
+        return MockHTTPResponse({"access_token": "foo", "expires_in": 100})
+
+    def mock_account_info(*args, **kwargs):
+        return MockHTTPResponse({"collectionToken": "foo"})
+
+    def mock_bulk_metadata(*args, **kwargs):
+        return MockHTTPResponse(
+            {"metadata": [{"isOwnedByCollections": True, "id": reserve_ids[0]}]}
+        )
+
+    def mock_inventory(*args, **kwargs):
+        return MockHTTPResponse({"files": [{"fileUrl": "foo.bar"}]})
+
+    def mock_reserve_id_files(*args, **kwargs):
+        return MockHTTPResponse({"reserveIds": reserve_ids})
+
+    monkeypatch.setattr(OverdriveSession, "get_library_account_info", mock_account_info)
+    monkeypatch.setattr(OverdriveSession, "get_bulk_metadata", mock_bulk_metadata)
+    monkeypatch.setattr(OverdriveSession, "get_collection_inventory", mock_inventory)
+    monkeypatch.setattr("requests.Session.get", mock_reserve_id_files)
+    monkeypatch.setattr("requests.post", mock_access_token_response)
 
 
 @pytest.fixture
