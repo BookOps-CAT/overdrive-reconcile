@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 from requests.exceptions import Timeout
 
@@ -75,3 +76,29 @@ def mock_webscrape_timeout(monkeypatch):
         raise Timeout
 
     monkeypatch.setattr("overdrive_reconcile.webscraper.requests.get", mock_timeout)
+
+
+@pytest.fixture
+def test_sierra_export(monkeypatch):
+    def mock_read_csv(*args, **kwargs):
+        df = pd.DataFrame(
+            data={
+                "bib_no": ["b170902584", "b202116244"],
+                "reserve_id": [
+                    "5E7A6766-4D4A-4564-86F2-481DE9473CD0",
+                    '"B49B38E7-D896-46B7-B625-818538AA0892";"B8369000-10C2-4922-B59B-A0D440FD7033"',
+                ],
+            }
+        )
+        return df
+
+    monkeypatch.setattr("overdrive_reconcile.prep.pd.read_csv", mock_read_csv)
+
+
+@pytest.fixture
+def test_sierra_export_no_overdrive_ids(monkeypatch):
+    def mock_read_csv(*args, **kwargs):
+        df = pd.DataFrame(data={"bib_no": ["b202231288"], "reserve_id": ["0012252617"]})
+        return df
+
+    monkeypatch.setattr(pd, "read_csv", mock_read_csv)

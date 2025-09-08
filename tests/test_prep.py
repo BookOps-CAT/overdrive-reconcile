@@ -20,9 +20,9 @@ def test_fresh_start(tmpdir):
     assert os.path.exists(f2) is False
 
 
-def test_prep_reserve_ids_in_sierra_export(test_main_dir):
+def test_prep_reserve_ids_in_sierra_export(test_main_dir, test_sierra_export):
     today = datetime.now().date()
-    prep_reserve_ids_in_sierra_export("NYPL", "tests/sierra-export-sample.txt")
+    prep_reserve_ids_in_sierra_export("NYPL", "sierra-export.txt")
     with open(f"{test_main_dir}/{today}/NYPL-sierra-prepped-reserve-ids.csv", "r") as f:
         assert (
             f.read()
@@ -30,13 +30,12 @@ def test_prep_reserve_ids_in_sierra_export(test_main_dir):
         )
 
 
-def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(test_main_dir):
+def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(
+    test_main_dir, test_sierra_export_no_overdrive_ids
+):
     today = datetime.now().date()
-    prep_reserve_ids_in_sierra_export(
-        "NYPL", "tests/sierra-export-sample-no-overdrive-id.txt"
-    )
+    prep_reserve_ids_in_sierra_export("NYPL", "sierra-export-no-overdrive-id.txt")
     with open(
         f"{test_main_dir}/{today}/NYPL-sierra-rejected-not-overdrive-ids.csv", "r"
     ) as f:
-        next(f)
         assert f.read() == "b202231288,0012252617\n"
