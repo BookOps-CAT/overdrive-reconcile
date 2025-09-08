@@ -83,6 +83,39 @@ def test_scrape(test_csv, test_main_dir, mock_webscrape_false_positive):
         assert len(f.read().strip()) > 0
 
 
+def test_scrape_expired(test_csv, test_main_dir, mock_webscrape):
+    scrape("NYPL", "for-deletion-sample.csv")
+    with open(
+        f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
+        "r",
+    ) as f:
+        assert (
+            f.read().strip()
+            == "b100000001,00000000-0000-0000-0000-000000000000,http://ebooks.nypl.org/ContentDetails.htm?ID=00000000-0000-0000-0000-000000000000,expired\nb100000012,11111111-1111-1111-1111-111111111111,http://ebooks.nypl.org/ContentDetails.htm?ID=11111111-1111-1111-1111-111111111111,expired"
+        )
+
+
+def test_scrape_start_number(test_csv, test_main_dir, mock_webscrape):
+    scrape("NYPL", "for-deletion-sample.csv", 2)
+    with open(
+        f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
+        "r",
+    ) as f:
+        assert (
+            f.read().strip()
+            == "b100000012,11111111-1111-1111-1111-111111111111,http://ebooks.nypl.org/ContentDetails.htm?ID=11111111-1111-1111-1111-111111111111,expired"
+        )
+
+
+def test_scrape_no_match(test_csv, test_main_dir, mock_webscrape_no_match):
+    scrape("NYPL", "for-deletion-sample.csv")
+    with open(
+        f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
+        "r",
+    ) as f:
+        assert len(f.read().strip()) > 0
+
+
 def test_scrape_404(test_csv, test_main_dir, mock_webscrape_404):
     scrape("NYPL", "for-deletion-sample.csv")
     with open(
