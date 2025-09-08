@@ -4,7 +4,6 @@ from datetime import datetime
 import pytest
 
 from overdrive_reconcile.utils import (
-    count_rows,
     create_dst_csv_fh,
     date_subdirectory,
     dst_main_directory,
@@ -12,10 +11,6 @@ from overdrive_reconcile.utils import (
     logger_dict_config,
     save2csv,
 )
-
-
-def test_count_rows(test_for_deletion_csv):
-    assert count_rows("foo.csv") == 2
 
 
 @pytest.mark.parametrize(

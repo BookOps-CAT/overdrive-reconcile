@@ -1,4 +1,5 @@
 import csv
+import logging
 import os
 import re
 from datetime import datetime
@@ -8,10 +9,7 @@ P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
 URL_NYPL = "http://ebooks.nypl.org/ContentDetails.htm?ID="
 URL_BPL = "http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID="
 
-
-def count_rows(fh: str) -> int:
-    with open(fh, "r") as f:
-        return sum(1 for line in f)
+logger = logging.getLogger(__name__)
 
 
 def dst_main_directory(library: str) -> str:

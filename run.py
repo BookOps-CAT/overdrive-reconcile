@@ -4,7 +4,7 @@ import logging.config
 import sys
 
 from overdrive_reconcile.reconcile import reconcile
-from overdrive_reconcile.utils import count_rows, date_subdirectory, logger_dict_config
+from overdrive_reconcile.utils import date_subdirectory, logger_dict_config
 from overdrive_reconcile.webscraper import scrape
 
 
@@ -56,11 +56,9 @@ def main(args: list) -> None:
             src_fh = (
                 f"{work_dir}/{pargs.library}-for-deletion-verification-required.csv"
             )
-            total = count_rows(src_fh) - 1
-            scrape(pargs.library, src_fh, total, pargs.start)
+            scrape(pargs.library, src_fh, pargs.start)
         else:
-            total = count_rows(pargs.source) - 1
-            scrape(pargs.library, pargs.source, total, pargs.start)
+            scrape(pargs.library, pargs.source, pargs.start)
 
 
 if __name__ == "__main__":
