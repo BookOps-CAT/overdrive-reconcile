@@ -3,7 +3,6 @@ import os
 
 import pandas as pd
 
-from . import overdrive_session
 from .utils import create_dst_csv_fh
 
 logger = logging.getLogger(__name__)
@@ -56,17 +55,3 @@ def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
 
     df[valid_reserve_id].to_csv(dst_validated_fh, index=False, header=False)
     df[~valid_reserve_id].to_csv(dst_rejected_fh, index=False, header=False)
-
-
-def overdrive2csv(library: str) -> None:
-    """
-    Retrieves OverDrive Reserve IDs from Overdrive Discovery APIs
-    and saves the results to a csv file.
-
-    Args:
-        library: library system 'NYPL' or 'BPL'
-    """
-    out = create_dst_csv_fh(library, "overdrive-api-reserve-ids")
-    inventory = overdrive_session.get_inventory(library=library)
-    df = pd.DataFrame(inventory)
-    df.to_csv(out, index=False, header=False)

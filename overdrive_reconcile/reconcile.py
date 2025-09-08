@@ -3,11 +3,17 @@ The main module that runs the reconciliation process.
 """
 
 import logging
+import os
 
 import pandas as pd
 
-from .prep import overdrive2csv, prep_reserve_ids_in_sierra_export
-from .utils import URL_BPL, URL_NYPL, date_subdirectory
+from .overdrive_session import (
+    get_inventory,
+    get_overdrive_api_creds,
+    verify_missing_resources,
+)
+from .prep import prep_reserve_ids_in_sierra_export
+from .utils import date_subdirectory
 from .webscraper import scrape
 
 logger = logging.getLogger(__name__)
@@ -47,6 +53,8 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     """
     Launches recoinciliation process
     """
+    # load api creds into envars
+    get_overdrive_api_creds(library=library)
 
     # reports directory
     subdir = date_subdirectory(library)
@@ -55,13 +63,9 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     avail_fh = f"{subdir}/{library}-FINAL-available-resources.csv"
     miss_fh = f"{subdir}/{library}-FINAL-for-import-missing-resources.csv"
     del_fh = f"{subdir}/{library}-for-deletion-verification-required.csv"
+    import_fh = f"{subdir}/{library}-for-import-verification-required.csv"
 
-    if library == "NYPL":
-        url = URL_NYPL
-    elif library == "BPL":
-        url = URL_BPL
-    else:
-        ValueError("Invalid library code provided.")
+    url = os.environ["OVERDRIVE_URL"]
 
     logger.debug("Launching reconciliation process.")
 
@@ -70,8 +74,8 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     prep_reserve_ids_in_sierra_export(library, sierra_export_fh)
 
     # prepare data from Overdrive Digital Inventory API
-    logger.debug(f"Retrieving data from {library} Overdrive Digital Inventory API DB.")
-    overdrive2csv(library)
+    logger.debug(f"Retrieving data from {library} Overdrive Digital Inventory API.")
+    get_inventory(library)
 
     # merge both datasets
     # retireve Sierra data
@@ -111,8 +115,11 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     fdf = pd.merge(sdf, edf, on="reserve_id", how="outer", indicator=True)
 
     # find missing resources
-    logger.debug("Identifying missing in Sierra Reserve IDs.")
-    mdf = fdf[fdf["_merge"] == "right_only"].copy()
+    logger.debug("Identifying Reserve IDs missing from Sierra.")
+    cdf = fdf[fdf["_merge"] == "right_only"].copy()
+    cdf.to_csv(import_fh, index=False, header=False, columns=["reserve_id"])
+
+    mdf = verify_missing_resources(library=library, df=cdf)
     mdf["url"] = url + mdf["reserve_id"].astype(str)
     mdf.to_csv(miss_fh, index=False, header=False, columns=["reserve_id", "url"])
     logger.info(
@@ -132,8 +139,6 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     )
 
     logger.debug("Verifying records for deletion via web scraping OverDrive platform.")
-    print("<go get your coffee - this may take a while>")
-    total = ddf.shape[0]
-    scrape(library, del_fh, str(total))
+    scrape(library, del_fh)
 
     logger.info("Reconciliation complete.")
