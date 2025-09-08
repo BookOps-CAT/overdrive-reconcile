@@ -7,7 +7,7 @@ from overdrive_reconcile.webscraper import EbookStatus, get_html, scrape, update
 
 
 @pytest.mark.local
-def test_scrape_local(test_for_deletion_csv, test_main_dir):
+def test_scrape_local(test_csv, test_main_dir):
     scrape("BPL", "for-deletion-sample.csv", 2)
 
     today = datetime.now().date()
@@ -76,7 +76,7 @@ def test_get_html_timeout(mock_webscrape_timeout):
         get_html(url, 1, 2)
 
 
-def test_scrape(test_for_deletion_csv, test_main_dir, mock_webscrape):
+def test_scrape(test_csv, test_main_dir, mock_webscrape):
     scrape("NYPL", "for-deletion-sample.csv", 2)
 
     with open(
@@ -86,7 +86,7 @@ def test_scrape(test_for_deletion_csv, test_main_dir, mock_webscrape):
         assert len(f.read().strip()) > 0
 
 
-def test_scrape_404(test_for_deletion_csv, test_main_dir, mock_webscrape_404):
+def test_scrape_404(test_csv, test_main_dir, mock_webscrape_404):
     scrape("NYPL", "for-deletion-sample.csv", 2)
 
     with open(
