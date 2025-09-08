@@ -33,15 +33,16 @@ class EbookStatus:
     prerelease: Optional[bool] = None
 
 
-def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
+def scrape(library: str, src_fh: str, start: int = 0) -> None:
     """
     Launches web scraping of OverDrive catalog
 
     Args:
         library:                library code
         src_fh:                 source data file handle
-        total:                  number of total resources to check
     """
+    with open(src_fh, "r") as count:
+        total = sum(1 for line in count)
     dst_fh = create_dst_csv_fh(library, "FINAL-for-deletion-verified-resources")
     reject_fh = create_dst_csv_fh(library, "false-positives-for-deletion")
 
@@ -51,14 +52,13 @@ def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
         n = 1
         for row in reader:
             if n >= start:
-                bib_no = row[0]
                 url = row[2]
                 page = get_html(url, n, total)
                 if not page:
                     row.append("removed")
                     save2csv(dst_fh, row)
                 else:
-                    status = get_ebook_status(bib_no, page)
+                    status = get_ebook_status(page)
                     if status.for_removal is True:
                         row.append("expired")
                         save2csv(dst_fh, row)
@@ -67,7 +67,7 @@ def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
             n += 1
 
 
-def get_ebook_status(bid: str, html: bytes) -> EbookStatus:
+def get_ebook_status(html: bytes) -> EbookStatus:
     """
     parses HTML, finds significant portion of metadata in document head, and
     interprets important bits, such as availability of ebook, ownership,
@@ -80,20 +80,13 @@ def get_ebook_status(bid: str, html: bytes) -> EbookStatus:
     """
 
     ebook_status = EbookStatus()
-    found = False
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "html.parser", from_encoding="utf-8")
     scripts = soup.find_all("script")
     for s in scripts:
         m = P.match(str(s))
         if m:
-            metadata = m.group(1)
-            found = True
-            break
-    if found:
-        ebook_status = update_status(metadata, ebook_status)
-    else:
-        with open("./temp/missing/{}.html".format(bid), "w") as file:
-            file.write(str(html))
+            return update_status(m.group(1), ebook_status)
+    ebook_status.for_removal = True
     return ebook_status
 
 

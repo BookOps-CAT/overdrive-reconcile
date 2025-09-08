@@ -1,11 +1,17 @@
 """Functions that allow for interactions with Overdrive Discovery APIs"""
 
 import datetime
+import logging
 import os
 from typing import Generator
 
+import pandas as pd
 import yaml
 from bookops_overdrive import OverdriveAccessToken, OverdriveSession
+
+from overdrive_reconcile.utils import create_dst_csv_fh
+
+logger = logging.getLogger(__name__)
 
 
 def get_overdrive_api_creds(library: str) -> None:
@@ -37,25 +43,28 @@ def get_overdrive_api_creds(library: str) -> None:
         os.environ[f"{library}_{k}"] = v
 
 
-def get_inventory(library: str) -> list[str]:
+def get_inventory(library: str) -> None:
     """
     Retrieves a list of registry IDs from the Overload Digital Inventory API
     representing the given library's entire digital collection.
     Args:
         library: 'NYPL' or 'BPL'
     Returns:
-        a list of registry IDs
+        None
     """
-    creds = get_overdrive_api_creds(library=library)
-    token = OverdriveAccessToken(key=creds["CLIENT_KEY"], secret=creds["CLIENT_SECRET"])
+    out_file = create_dst_csv_fh(library, "overdrive-api-reserve-ids")
+    token = OverdriveAccessToken(
+        key=os.environ[f"{library}_CLIENT_KEY"],
+        secret=os.environ[f"{library}_CLIENT_SECRET"],
+    )
     out = []
     with OverdriveSession(authorization=token) as session:
-        coll_token_resp = session.get_library_account_info(int(creds["LIBRARY_ID"]))
-        coll_token = coll_token_resp.json()["collectionToken"]
+        coll_token = os.environ[f"{library}_COLL_TOKEN"]
         response = session.get_collection_inventory(collectionToken=coll_token)
         inventory = session.get(response.json()["files"][0]["fileUrl"])
         out.extend(inventory.json()["reserveIds"])
-    return out
+    df = pd.DataFrame(out)
+    df.to_csv(out_file, index=False, header=False)
 
 
 def refresh_collection_token(creds: dict[str, str], cred_file: str) -> dict[str, str]:
@@ -80,3 +89,28 @@ def expired_coll_token(token_expire: str) -> bool:
 def get_batches(iterable: list[str], size: int) -> Generator[list[str], None, None]:
     for i in range(0, len(iterable), size):
         yield iterable[i : i + size]
+
+
+def verify_missing_resources(library: str, df: pd.DataFrame) -> pd.DataFrame:
+    token = OverdriveAccessToken(
+        key=os.environ[f"{library}_CLIENT_KEY"],
+        secret=os.environ[f"{library}_CLIENT_SECRET"],
+    )
+    ids_to_check = df["reserve_id"].to_list()
+    available_ids = []
+    with OverdriveSession(authorization=token) as session:
+        id_count = len(ids_to_check)
+        for i, chunk in enumerate(get_batches(ids_to_check, 50), start=1):
+            logger.debug(
+                f"Checking ids {i * 50 - 49}-{(i - 1) * 50 + len(chunk)} of {id_count}."
+            )
+            coll_token = os.environ[f"{library}_COLL_TOKEN"]
+            response = session.get_bulk_metadata(coll_token, chunk)
+            available_ids.extend(
+                [
+                    i.get("id")
+                    for i in response.json()["metadata"]
+                    if i.get("isOwnedByCollections")
+                ]
+            )
+    return pd.DataFrame(data={"reserve_id": available_ids})

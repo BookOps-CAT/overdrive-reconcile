@@ -8,7 +8,7 @@ from overdrive_reconcile.webscraper import EbookStatus, get_html, scrape, update
 
 @pytest.mark.local
 def test_scrape_local(test_csv, test_main_dir):
-    scrape("BPL", "for-deletion-sample.csv", 2)
+    scrape("BPL", "for-deletion-sample.csv")
 
     today = datetime.now().date()
     with open(
@@ -49,18 +49,16 @@ def test_update_status_owned_copies(metadata, copies, remove):
 
 
 def test_get_html(mock_webscrape, caplog):
-    caplog.set_level("DEBUG")
     url = "http://ebooks.nypl.org/ContentDetails.htm?ID=1"
     data = get_html(url, 1, 2)
     assert (
         "(1 of 2) Requested page: http://ebooks.nypl.org/ContentDetails.htm?ID=1 == 200"
         in caplog.text
     )
-    assert data == b'"isAvailable":false,'
+    assert b"window.OverDrive.mediaItems" in data
 
 
 def test_get_html_404(mock_webscrape_404, caplog):
-    caplog.set_level("DEBUG")
     url = "http://ebooks.nypl.org/ContentDetails.htm?ID=1"
     data = get_html(url, 1, 2)
     assert (
@@ -76,19 +74,17 @@ def test_get_html_timeout(mock_webscrape_timeout):
         get_html(url, 1, 2)
 
 
-def test_scrape(test_csv, test_main_dir, mock_webscrape):
-    scrape("NYPL", "for-deletion-sample.csv", 2)
-
+def test_scrape(test_csv, test_main_dir, mock_webscrape_false_positive):
+    scrape("NYPL", "for-deletion-sample.csv")
     with open(
-        f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
+        f"{test_main_dir}/2025-01-01/NYPL-false-positives-for-deletion.csv",
         "r",
     ) as f:
         assert len(f.read().strip()) > 0
 
 
 def test_scrape_404(test_csv, test_main_dir, mock_webscrape_404):
-    scrape("NYPL", "for-deletion-sample.csv", 2)
-
+    scrape("NYPL", "for-deletion-sample.csv")
     with open(
         f"{test_main_dir}/2025-01-01/NYPL-FINAL-for-deletion-verified-resources.csv",
         "r",
