@@ -5,8 +5,8 @@ from overdrive_reconcile import utils
 
 
 @pytest.fixture
-def test_main_dir(monkeypatch, tmpdir):
-    main_dir = tmpdir.join("LIB_CODE")
+def test_main_dir(monkeypatch, tmp_path):
+    main_dir = tmp_path / "LIB_CODE"
 
     def _patch(*args, **kwargs):
         return main_dir
@@ -16,13 +16,13 @@ def test_main_dir(monkeypatch, tmpdir):
 
 
 @pytest.fixture
-def test_for_deletion_csv(mocker):
+def test_csv(mocker):
     lines = [
-        "b112411101,9cbb451f-2d23-478a-96d0-3b0c7ae3a588,http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID=9cbb451f-2d23-478a-96d0-3b0c7ae3a588",
-        "b112467027,8543242e-b134-4024-8229-f969b0072901,http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID=8543242e-b134-4024-8229-f969b0072901",
+        "b100000001,00000000-0000-0000-0000-000000000000,http://ebooks.nypl.org/ContentDetails.htm?ID=00000000-0000-0000-0000-000000000000",
+        "b100000012,11111111-1111-1111-1111-111111111111,http://ebooks.nypl.org/ContentDetails.htm?ID=11111111-1111-1111-1111-111111111111",
     ]
     mock_file = mocker.mock_open(read_data="\n".join(lines))
-    mocker.patch("builtins.open", mock_file)
+    mocker.patch("overdrive_reconcile.webscraper.open", mock_file)
 
 
 class MockHTTPResponse:
