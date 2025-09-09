@@ -37,7 +37,7 @@ def get_overdrive_api_creds(library: str) -> None:
         raise ValueError("Invalid library code passed")
     with open(os.path.join(os.environ["USERPROFILE"], fh), "r") as f:
         data = yaml.safe_load(f)
-    if expired_coll_token(data["COLL_TOKEN_EXPIRATION"]):
+    if expired_coll_token(data.get("COLL_TOKEN_EXPIRATION")):
         data = refresh_collection_token(
             creds=data, cred_file=os.path.join(os.environ["USERPROFILE"], fh)
         )
@@ -98,7 +98,7 @@ def refresh_collection_token(creds: dict[str, str], cred_file: str) -> dict[str,
 def expired_coll_token(token_expire: str) -> bool:
     """Check whether a collection token has expired."""
     today = datetime.datetime.now()
-    if datetime.datetime.strptime(token_expire, "%Y-%m-%d") >= today:
+    if token_expire and datetime.datetime.strptime(token_expire, "%Y-%m-%d") >= today:
         return False
     return True
 
