@@ -51,7 +51,7 @@ Stop: b*
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|a|not equal to|""|
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|b|has|"overdrive"|
 |AND|BIBLIOGRAPHIC|MARC Tag 856\|u|All Fields don't have|"serialssolutions"|
-|AND|BIBLIOGRAPHIC|CALL #|starts with|"e"|
+|AND|BIBLIOGRAPHIC|CALL No.|starts with|"e"|
 
 ### Both Systems
 Export the following fields from the list:
