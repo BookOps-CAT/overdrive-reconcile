@@ -1,6 +1,4 @@
-"""
-The main module that runs the reconciliation process.
-"""
+"""The main module that runs the reconciliation process."""
 
 import logging
 import os
@@ -22,13 +20,18 @@ logger = logging.getLogger(__name__)
 def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
     """
     Deduplicates given dataframe on reserve ID leaving the latest record.
-    Does not consiter situation where duplicate reserve ID is present on the
-    same record.
+    Does not consider the situation where a single bib record contains duplicate
+    reserve IDs.
 
     Args:
-        library:                    'NYPL' or 'BPL' library  code
-        df:                         pandas.DataFrame instance
-        subdir:                     directory to output reports
+        library: 'NYPL' or 'BPL'
+        df: `pandas.DataFrame` object to deduplicate
+        subdir: directory where output .csv files will be written
+
+    Returns:
+        None. Bib IDs for records containing duplicate reserve IDs are written to
+        '{library}-FINAL-duplicate-reserveid-sierra.csv'. Unique reserve IDs are
+        written to '{library}-unique-reserveid-sierra.csv'.
     """
     logger.debug("Deduplication of Sierra dataset on Reserve ID.")
     dups_fh = f"{subdir}/{library}-FINAL-duplicate-reserveid-sierra.csv"
@@ -51,7 +54,16 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
 
 def reconcile(library: str, sierra_export_fh: str) -> None:
     """
-    Launches recoinciliation process
+    Launches reconciliation process for `reconcile` command in `run.py`.
+
+    Args:
+        library:
+            'NYPL' or 'BPL'
+        sierra_export_fh:
+            path to .txt file containing bib IDs and reserve IDs exported from Sierra
+
+    Returns:
+        None. Output is written to .csv files in 'files/{library}/{date}/'.
     """
     # load api creds into envars
     get_overdrive_api_creds(library=library)
