@@ -9,7 +9,6 @@ from overdrive_reconcile.webscraper import scrape
 
 
 def main(args: list) -> None:
-    # process: str: library: str, src_fh: str)
     config = logger_dict_config()
     logging.config.dictConfig(config)
 
