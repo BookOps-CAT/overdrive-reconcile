@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 def get_overdrive_api_creds(library: str) -> None:
     """
     Retrieves Overdrive API credentials for the given library.
+
     Args:
         library: 'NYPL' or 'BPL'
+
     Returns:
         None. Credentials are loaded into environment variables.
     """
