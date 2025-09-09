@@ -33,9 +33,9 @@ Stop: b*
 
 |Operator|Type|Field|Condition|Value A|
 |---|---|---|---|---|
-||BIBLIOGRAPHIC|MARC Tag 037|a|not equal to|""|
-|AND|BIBLIOGRAPHIC|MARC Tag 037|b|has |"overdrive"|
-|AND|BIBLIOGRAPHIC|MARC Tag 856|u|All Fields don't have|"serialssolutions"|
+||BIBLIOGRAPHIC|MARC Tag 037\|a|not equal to|""|
+|AND|BIBLIOGRAPHIC|MARC Tag 037\|b|has |"overdrive"|
+|AND|BIBLIOGRAPHIC|MARC Tag 856\|u|All Fields don't have|"serialssolutions"|
 |AND|BIBLIOGRAPHIC|Call No.|starts with|"enypl"|
 
 ### BPL
