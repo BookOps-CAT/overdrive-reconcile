@@ -9,10 +9,7 @@ keywords = ["cataloging", "bibliographic records", "electronic resources"]
 requires-python = ">=3.12"
 dependencies = [
     "pandas (>=2.3)",
-    "pymarc (>=5.3)",    
-    "SQLAlchemy (>=2.0)",
     "PyYAML (>=6.0)",
-    "psycopg2 (>=2.9.3)",
     "beautifulsoup4 (>=4.13)",
     "requests (>=2.32,<3.0.0)",
     "pandas-stubs (>=2.2.3.241126,<3.0.0)",
@@ -25,34 +22,11 @@ dependencies = [
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4"
 pytest-cov = "^6.2"
-black = "^24.3"
 pytest-mock = "^3.15"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 88
-target-version = ['py312']
-include = '\.pyi?$'
-exclude = '''
-(
-    /(
-        \.eggs
-       | \.git
-       | \.hg
-       | \.mypy_cache
-       | \.tox
-       | \.venv
-       | _build
-       | buck-out
-       | build
-       | dist
-    )/
-    | temp.py
-)
-'''
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
