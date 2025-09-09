@@ -31,7 +31,7 @@ Start: b170902584
 
 Stop: b*
 
-|Operator|Type|Field|Condition|ValueA|
+|Operator|Type|Field|Condition|Value A|
 |---|---|---|---|---|
 ||BIBLIOGRAPHIC|MARC Tag 037|a|not equal to|""|
 |AND|BIBLIOGRAPHIC|MARC Tag 037|b|has |"overdrive"|
@@ -45,16 +45,16 @@ Start: b112402306
 
 Stop: b*
 
-|Operator|Type|Field|Condition|ValueA|
+|Operator|Type|Field|Condition|Value A|
 |---|---|---|---|---|
-||BIBLIOGRAPHIC  MARC Tag 003  not equal to  "wasess"|
+||BIBLIOGRAPHIC|MARC Tag 003|not equal to|"wasess"|
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|a|not equal to|""|
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|b|has|"overdrive"|
 |AND|BIBLIOGRAPHIC|MARC Tag 856\|u|All Fields don't have|"serialssolutions"|
 |AND|BIBLIOGRAPHIC|CALL #|starts with|"e"|
 
 ### Both Systems
-Export the following fields from created list:
+Export the following fields from the list:
 
 |Type|Field|
 |---|---|
@@ -63,10 +63,13 @@ Export the following fields from created list:
 
 Use default export values: 
 
-+ Field delimiter: `,`
-+ Text qualifier: `"`
-+ Repeated field delimiter: `;`
-+ Maximum field length: `<none>`
+Field delimiter: `,`
+
+Text qualifier: `"`
+
+Repeated field delimiter: `;
+
+Maximum field length: `<none>`
 
 ## 3. Launching scripts
 1. Activate virtual environment
@@ -82,14 +85,14 @@ $ python run.py reconcile BPL "./temp/overdrive-all-sierra-export.txt"
 
 The above routine verifies a resource's availability by scraping the OverDrive website for the resource. This webscraping is prone to timeouts on the OverDrive server. 
 
-CLI shows traceback to a timeout error (last processed resource had number 626):
+CLI shows traceback to a timeout error (last resource processed was number 626):
 [![scraping timeout](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/webscraping-error.png)](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/webscraping-error.png)
 
 If that happens, simply note the number of the next resource to be checked and restart the process utilizing the following command:
 ```bash
-$ python run.py webscrape {library} {data source path} {row to start from} 
+$ python run.py webscrape {library} {path to csv} {row to start from} 
 ```
-{data source path} is the appropriate `{library}-for-deletion-verification-required.csv` file created by previous scripts. If restarting the process on the same day the command can be simplified by entering `default` instead of providing the full path to data source:
+`{path to csv}` is the path to the appropriate `{library}-for-deletion-verification-required.csv` file created by the previous steps in the script. If restarting the process on the same day the command can be simplified by entering `default` instead of providing the full path to the csv:
 
 ```bash
 $ python run.py webscrape BPL default 627
@@ -99,7 +102,7 @@ $ python run.py webscrape BPL default 627
 
 The reconciliation script creates a designated directory where all reports are saved: `overdrive-reconcile/files/{library}/{YYYY-MM-DD}/`. 
 
-The scripts generate the following reports:
+The scripts generate the following reports (actionable reports have the `FINAL` prefix in the filename):
 + `{library}-FINAL-available-resources.csv`
 + `{library}-FINAL-duplicate-reserveid-sierra.csv`
 + `{library}-FINAL-for-deletion-verified-resources.csv`
@@ -111,8 +114,6 @@ The scripts generate the following reports:
 + `{library}-sierra-prepped-reserve-ids.csv` (temp, work file)
 + `{library}-sierra-rejected-not-overdrive-ids.csv` (work file)
 + `{library}-unique-reserveid-sierra.csv` (temp, work file)
-
-Actionable reports have the `FINAL` prefix in the title.
 
 ### `FINAL-duplicate-reserveid-sierra.csv`
 This report contains a list of duplicate resources discovered in the ILS based on OverDrive Reserve ID. The csv contains Bib IDs and reserve IDs.
@@ -132,7 +133,7 @@ The script analyzes OverDrive data pulled from the ILS (Sierra) and compares it 
 
 [![diagram](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/Overdrive-weeding.drawio.png)](https://github.com/BookOps-CAT/overdrive-reconcile/blob/main/docs/media/Overdrive-weeding.drawio.png)
 
-After identifying resources that could be deleted from Sierra the list is verified via web scraping the OverDrive catalog.
+After identifying resources that can be deleted from Sierra the list is verified via web scraping the OverDrive catalog. 
 
 ## Changelog
 
