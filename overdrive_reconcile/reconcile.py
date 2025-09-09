@@ -36,6 +36,7 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
     dups_fh = f"{subdir}/{library}-FINAL-duplicate-reserveid-sierra.csv"
     unique_fh = f"{subdir}/{library}-unique-reserveid-sierra.csv"
 
+    df["reserve_id"] = df["reserve_id"].str.lower()
     ddf = df[df.duplicated(subset=["reserve_id"], keep="last")]
     ddf.to_csv(dups_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     logger.info(
@@ -102,11 +103,9 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
         f"{subdir}/{library}-unique-reserveid-sierra.csv",
         names=["bib_no", "reserve_id"],
     )
-    sdf["reserve_id"] = sdf["reserve_id"].str.lower()
     edf = pd.read_csv(
         f"{subdir}/{library}-overdrive-api-reserve-ids.csv", names=["reserve_id"]
     )
-    edf["reserve_id"] = edf["reserve_id"].str.lower()
 
     # create inner join representing available resources (ie. IDs present in both sets)
     logger.debug("Merging Sierra and Overdrive API sets.")

@@ -66,6 +66,7 @@ def get_inventory(library: str) -> None:
         response = session.get_collection_inventory(collectionToken=coll_token)
         inventory = session.get(response.json()["files"][0]["fileUrl"])
         out.extend(inventory.json()["reserveIds"])
+    out = [i.lower() for i in out]
     df = pd.DataFrame(out)
     df.to_csv(out_file, index=False, header=False)
 
