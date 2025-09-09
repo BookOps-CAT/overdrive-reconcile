@@ -1,18 +1,21 @@
 import argparse
+import logging
+import logging.config
 import sys
 
 from overdrive_reconcile.reconcile import reconcile
-from overdrive_reconcile.utils import date_subdirectory, count_rows
-from overdrive_reconcile.webscraper import scrape, check_status
+from overdrive_reconcile.utils import date_subdirectory, logger_dict_config
+from overdrive_reconcile.webscraper import scrape
 
 
 def main(args: list) -> None:
-
-    # process: str: library: str, src_fh: str)
+    config = logger_dict_config()
+    logging.config.dictConfig(config)
 
     parser = argparse.ArgumentParser(
         prog="Overdrive-Reconcile",
-        description="Sets of scripts reconciling records between Sierra and OverDrive platform.",
+        description="Sets of scripts reconciling records between Sierra "
+        "and OverDrive platform.",
     )
 
     parser.add_argument(
@@ -20,10 +23,9 @@ def main(args: list) -> None:
         help=(
             "'reconcile' runs entire set of scripts | "
             "'webscrape' runs only webscraping of OverDrive catalog | "
-            "'check-overdrive' runs scraping for a single resource"
         ),
         type=str,
-        choices=["reconcile", "webscrape", "check-overdrive"],
+        choices=["reconcile", "webscrape"],
     )
     parser.add_argument(
         "library", help="'BPL' or 'NYPL'", type=str, choices=["BPL", "NYPL"]
@@ -53,15 +55,9 @@ def main(args: list) -> None:
             src_fh = (
                 f"{work_dir}/{pargs.library}-for-deletion-verification-required.csv"
             )
-            total = count_rows(src_fh) - 1
-            scrape(pargs.library, src_fh, total, pargs.start)
+            scrape(pargs.library, src_fh, pargs.start)
         else:
-            total = count_rows(pargs.source) - 1
-            scrape(pargs.library, pargs.source, total, pargs.start)
-
-    if pargs.action == "check-overdrive":
-        print(f"Checking status of {pargs.source} on OverDrive platform...")
-        check_status(pargs.source, pargs.library)
+            scrape(pargs.library, pargs.source, pargs.start)
 
 
 if __name__ == "__main__":

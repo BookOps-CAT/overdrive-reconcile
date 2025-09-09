@@ -1,41 +1,13 @@
-from datetime import datetime
-import csv
+"""Functions that prepare Sierra export files for reconciliation."""
+
+import logging
 import os
 
 import pandas as pd
-from pymarc import MARCReader
 
+from .utils import create_dst_csv_fh
 
-from .utils import save2csv, is_reserve_id, create_dst_csv_fh
-from . import simplye
-
-
-def extract_reserve_ids_from_backdated_file(library: str, marc_fh: str) -> None:
-    """
-    Parses OverDrive backdated MarcExpress records and outputs
-    found Reserve IDs to a file.
-    May produce invalid results if used for MARC records exported from
-    Sierra (multiple 037s, etc.)
-
-    Args:
-        library:                'BPL' or 'NYPL'
-        marc_fh:                file handle of MARC21 file to be processed
-
-    """
-    if library.upper() not in ("BPL", "NYPL"):
-        raise ValueError("Invalid library argument passed. Must be 'BPL' or 'NYPL'")
-
-    if not isinstance(marc_fh, str) or not marc_fh:
-        raise ValueError("Invalid or missing source MARC file passed.")
-
-    out = create_dst_csv_fh(library, "backdated-reserve-ids")
-    fresh_start([out])
-
-    with open(marc_fh, "rb") as marcfile:
-        reader = MARCReader(marcfile)
-        for bib in reader:
-            reserve_id = bib["037"]["a"].lower()
-            save2csv(out, [reserve_id])
+logger = logging.getLogger(__name__)
 
 
 def fresh_start(files: list[str]) -> None:
@@ -48,63 +20,46 @@ def fresh_start(files: list[str]) -> None:
     """
     for file in files:
         if os.path.exists(file):
-            try:
-                os.remove(file)
-            except OSError:
-                print(f"Unable to remove {file}")
-                raise
+            os.remove(file)
 
 
 def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
     """
-    Filters and prepares OverDrive Reserve IDs exported to text file
-    from Sierra for further analysis.
-    It's common to see print orders attached to e-resource bib. It is important
-    to make sure the list from Sierra does not include any mistakenly included
-    records!
+    Validates OverDrive Reserve IDs exported from Sierra for further analysis.
 
-    Sierra export configuration:
-        fields: "RECORD #(BIBLIO)","037|a"
-        field delimiter: ,
-        repeated field delimiter: ;
-        text qualifier: "
-        maximum field lenght: <none>
+    It's common to see print orders attached to e-resource bib records and these
+    records must be filtered out in order to ensure they are not included in the
+    reconciliation.
+
+    See 'Step 2. Sierra list creation & export' in this package's README for the
+    required format of the Sierra export file.
+
+    The 'files/{library}/{date}' directory is cleaned up removing any existing files
+    named '{library}-sierra-prepped-reserve-ids.csv' or
+    '{library}-sierra-rejected-not-overdrive-ids.csv' resulting from previous jobs
+    before outputing the validated and rejected reserve IDs to their respective files.
 
     Args:
-        src_fh:                 file handle of Sierra text export
-        library:                library code: 'NYPL' or 'BPL'
+        src_fh: file handle of Sierra .txt export
+        library: 'NYPL' or 'BPL'
+
+    Returns:
+        None. Reserve IDs are written to csvs containing valid IDs (eg.
+        'NYPL-sierra-prepped-reserve-ids.csv') and rejected IDs (eg.
+        'NYPL-sierra-rejected-not-overdrive-ids.csv')
     """
     dst_validated_fh = create_dst_csv_fh(library, "sierra-prepped-reserve-ids")
     dst_rejected_fh = create_dst_csv_fh(library, "sierra-rejected-not-overdrive-ids")
 
     # cleanup any previous jobs
     fresh_start([dst_validated_fh, dst_rejected_fh])
+    df = pd.read_csv(src_fh, dtype=str, names=["bib_id", "reserve_id"])
 
-    with open(src_fh, "r") as csvfile:
-        reader = csv.reader(csvfile)
-        reader.__next__()
-        for row in reader:
-            if len(row[1]) == 36:
-                save2csv(dst_validated_fh, row)
-            else:
-                ids = [i.replace('"', "") for i in row[1].split(";")]
-                for i in ids:
-                    if is_reserve_id(i):
-                        save2csv(dst_validated_fh, [row[0], i])
-                    else:
-                        save2csv(dst_rejected_fh, [row[0], i])
+    df["reserve_id"] = df["reserve_id"].str.replace('"', "")
+    df["reserve_id"] = df["reserve_id"].str.split(";")
+    df = df.explode("reserve_id")
 
+    valid_reserve_id = df["reserve_id"].str.fullmatch(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
 
-def simplye2csv(library: str):
-    """
-    Retrieves OverDrive Reserve IDs from given SimplyE database
-    and saves the results to a csv file.
-
-    Args:
-        library:                SimplyE library database code: 'NYPL' or 'BPL'
-    """
-    out = create_dst_csv_fh(library, "simplye-reserve-ids")
-    engine = simplye.simplye_connection(library)
-    query_stmn = simplye.get_reserve_id_query()
-    df = pd.read_sql_query(query_stmn, con=engine)
-    df.to_csv(out, index=False, header=None)
+    df[valid_reserve_id].to_csv(dst_validated_fh, index=False, header=False)
+    df[~valid_reserve_id].to_csv(dst_rejected_fh, index=False, header=False)

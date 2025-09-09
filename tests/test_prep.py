@@ -1,34 +1,7 @@
-from datetime import datetime
 import os
+from datetime import datetime
 
-import pytest
-
-from overdrive_reconcile.prep import (
-    extract_reserve_ids_from_backdated_file,
-    fresh_start,
-    prep_reserve_ids_in_sierra_export,
-    simplye2csv,
-)
-
-
-def test_extract_reserve_ids_from_backdated_file(test_main_dir, mock_main_dir):
-    today = datetime.now().date()
-    out = f"{test_main_dir}/{today}/BPL-backdated-reserve-ids.csv"
-    extract_reserve_ids_from_backdated_file("BPL", "./tests/sample.mrc")
-
-    with open(out, "r") as f:
-        assert f.read().strip() == "0e90d7a5-30b8-4d07-9d13-df0e02ea631e"
-
-
-def test_extract_reserve_ids_from_backdated_file_invalid_library():
-    with pytest.raises(ValueError):
-        extract_reserve_ids_from_backdated_file("FOO", "foo.mrc")
-
-
-@pytest.mark.parametrize("arg", [1, None, ""])
-def test_extract_reserve_ids_from_backdated_file_invalid_marc_fh(arg):
-    with pytest.raises(ValueError):
-        extract_reserve_ids_from_backdated_file("BPL", arg)
+from overdrive_reconcile.prep import fresh_start, prep_reserve_ids_in_sierra_export
 
 
 def test_fresh_start(tmpdir):
@@ -47,18 +20,9 @@ def test_fresh_start(tmpdir):
     assert os.path.exists(f2) is False
 
 
-def test_fresh_start_exception(tmpdir, mock_os_error):
-    f = tmpdir.join("foo.csv")
-    f.write("spam")
-    assert os.path.exists(f)
-
-    with pytest.raises(OSError):
-        fresh_start([f])
-
-
-def test_prep_reserve_ids_in_sierra_export(test_main_dir, mock_main_dir):
+def test_prep_reserve_ids_in_sierra_export(test_main_dir, test_sierra_export):
     today = datetime.now().date()
-    prep_reserve_ids_in_sierra_export("NYPL", "tests/sierra-export-sample.txt")
+    prep_reserve_ids_in_sierra_export("NYPL", "sierra-export.txt")
     with open(f"{test_main_dir}/{today}/NYPL-sierra-prepped-reserve-ids.csv", "r") as f:
         assert (
             f.read()
@@ -67,23 +31,11 @@ def test_prep_reserve_ids_in_sierra_export(test_main_dir, mock_main_dir):
 
 
 def test_prep_reserve_ids_in_sierra_export_no_overdrive_ids(
-    test_main_dir, mock_main_dir
+    test_main_dir, test_sierra_export_no_overdrive_ids
 ):
     today = datetime.now().date()
-    prep_reserve_ids_in_sierra_export(
-        "NYPL", "tests/sierra-export-sample-no-overdrive-id.txt"
-    )
+    prep_reserve_ids_in_sierra_export("NYPL", "sierra-export-no-overdrive-id.txt")
     with open(
         f"{test_main_dir}/{today}/NYPL-sierra-rejected-not-overdrive-ids.csv", "r"
     ) as f:
         assert f.read() == "b202231288,0012252617\n"
-
-
-@pytest.mark.local
-def test_simplye2csv(test_main_dir, mock_main_dir, mock_simplye_sql):
-    # warning this will take time to run since it's getting entire BPL Overdrive
-    # catalog
-    today = datetime.now().date()
-    simplye2csv("BPL")
-    with open(f"{test_main_dir}/{today}/BPL-simplye-reserve-ids.csv", "r") as f:
-        assert len(f.read().strip()) > 0

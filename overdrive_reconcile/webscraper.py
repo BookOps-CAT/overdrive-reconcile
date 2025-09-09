@@ -1,162 +1,141 @@
 """
-Use to validate Sierra-SimplyE deletions
+Scrape Overdrive website for license data to validate list of resources to be deleted.
 """
-from collections import namedtuple
+
 import csv
+import logging
 import re
 import time
+from dataclasses import dataclass
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
-from requests.exceptions import RequestException, Timeout
+from requests.exceptions import Timeout
 
-from overdrive_reconcile.utils import (
-    URL_NYPL,
-    URL_BPL,
-    save2csv,
-    create_dst_csv_fh,
-    is_reserve_id,
-)
+from overdrive_reconcile.utils import create_dst_csv_fh, save2csv
 
-
+logger = logging.getLogger(__name__)
 # regex patterns for significant pieces of info
 P = re.compile(r".*window.OverDrive.mediaItems = (\{.*\}\});.*", re.DOTALL)
-P_AVAILABLE = re.compile(r'.*"isAvailable":(true|false),".*', re.DOTALL)
-P_OWNED = re.compile(r'.*"isOwned":(true|false),".*', re.DOTALL)
-P_AVAILABLE_COPIES = re.compile(r'.*"availableCopies":(\d{1,}),".*', re.DOTALL)
+P_IS_PRERELEASE = re.compile(r'.*"isPreReleaseTitle":true,".*', re.DOTALL)
+P_AVAILABLE = re.compile(r'.*"isAvailable":true,".*', re.DOTALL)
 P_ALWAYS_AVAILABLE = re.compile(r'.*"availabilityType":"always".*', re.DOTALL)
 P_OWNED_COPIES = re.compile(r'.*"ownedCopies":(\d{1,}),".*', re.DOTALL)
 
 
-# ebook status data construct
-EbookStatus = namedtuple(
-    "EbookStatus",
-    [
-        "available",
-        "owned",
-        "always_available",
-        "copies_available",
-        "copies_owned",
-        "for_removal",
-    ],
-)
-EbookStatus.__new__.__defaults__ = (None, None, None, None, None, None)
+@dataclass
+class EbookStatus:
+    always_available: Optional[bool] = None
+    available: Optional[bool] = None
+    copies_owned: str = ""
+    for_removal: Optional[bool] = None
+    prerelease: Optional[bool] = None
 
 
-def check_status(reserveId: str, library: str) -> None:
-    if not is_reserve_id(reserveId):
-        raise ValueError("Invalid Reserve ID provided.")
-
-    if library == "NYPL":
-        url = f"{URL_NYPL}{reserveId}"
-    elif library == "BPL":
-        url = f"{URL_BPL}{reserveId}"
-
-    page = get_html(url, 1, 1)
-    if not page:
-        print(f"not found - removed")
-    else:
-        status = get_ebook_status(None, reserveId, page)
-        if is_purgable(status):
-            print("found - expired")
-        else:
-            print("found - false positive")
-        print(status)
-
-
-def scrape(library: str, src_fh: str, total: int, start: int = 0) -> None:
+def scrape(library: str, src_fh: str, start: int = 0) -> None:
     """
-    Launches web scraping of OverDrive catalog
+    Launches web scraping of OverDrive catalog from `reconcile` `webscrape` command.
 
     Args:
-        library:                library code
-        src_fh:                 source data file handle
-        total:                  number of total resources to check
+        library: 'NYPL' or 'BPL'
+        src_fh: path to file containing reserve IDs to be verified.
+        start: the first row within `src_fh` containing the ID to be verified
+
+    Returns:
+        None. Reserve IDs for records to be deleted from Sierra is written to
+        '{library}-FINAL-for-deletion-verified-resources.csv' and records which were
+        falsely identified are written to '{library}-false-positives-for-deletion.csv'.
     """
+    with open(src_fh, "r") as count:
+        total = sum(1 for line in count)
     dst_fh = create_dst_csv_fh(library, "FINAL-for-deletion-verified-resources")
     reject_fh = create_dst_csv_fh(library, "false-positives-for-deletion")
 
     with open(src_fh, "r") as src:
         reader = csv.reader(src)
-        next(reader)  # skip header
 
         n = 1
         for row in reader:
             if n >= start:
-                bib_no = row[0]
                 url = row[2]
                 page = get_html(url, n, total)
                 if not page:
                     row.append("removed")
                     save2csv(dst_fh, row)
                 else:
-                    status = get_ebook_status(None, bib_no, page)
-                    if is_purgable(status):
+                    status = get_ebook_status(page)
+                    if status.for_removal is True:
                         row.append("expired")
                         save2csv(dst_fh, row)
                     else:
                         save2csv(reject_fh, row)
             n += 1
+            time.sleep(0.5)
 
 
-def get_ebook_status(oid, bid, html):
+def get_ebook_status(html: bytes) -> EbookStatus:
     """
-    parses HTML, finds significant portion of metadata in document head, and
-    interprets important bits, such as availability of ebook, ownership,
-    available copies, and own copies by the library
+    Parses HTML to determine whether the resource is still available.
 
-    args:
-        html: response.content
-    returns:
-        (available, owned, copies_available, copies_owned): namedtuple
+    The parser first searches for a significant portion of metadata in the document
+    head before interpreting other portions of the html to determine whether the
+    resource is still available or should be deleted.
+
+    Args:
+        html: `bytes` object from `requests.Response.content`
+
+    Returns:
+        `EbookStatus` object containing significant metadata for resource.
     """
 
     ebook_status = EbookStatus()
-    found = False
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "html.parser", from_encoding="utf-8")
     scripts = soup.find_all("script")
     for s in scripts:
         m = P.match(str(s))
         if m:
-            metadata = m.group(1)
-            found = True
-            break
-    if found:
-        ebook_status = update_status(metadata, ebook_status)
-    else:
-        with open("./temp/missing/{}.html".format(bid), "w") as file:
-            file.write(str(html))
+            return update_status(m.group(1), ebook_status)
+    ebook_status.for_removal = True
     return ebook_status
 
 
-def make_request(url, n, total, headers):
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        print(
-            f"({n} of {total}) Requested page: {response.url} == {response.status_code}"
-        )
-        return response
-    except Timeout:
-        raise
-
-
-def get_html(url: str, n: int, total: int, agent: str = "bookops/NYPL") -> bytes:
+def get_html(
+    url: str, n: int, total: int, agent: str = "bookops/NYPL"
+) -> Optional[bytes]:
     """
-    retrieves html code from given url
-    args:
-        url:                    URL of a page to be requested
-        agent:                  agent header of the request
-        n:                      resource sequence #
-        total:                  total number of resources to request
-    returns:
-        page
+    Retrieves HTML for a given url.
+
+    Args:
+        url:
+            URL to be requested
+        n:
+            The sequence number for the resource (ie. the row number from the input csv)
+            to be used in a log message.
+        total:
+            The total number of resources to be requested (ie. the total number of rows
+            in the input csv) to be used in a log message.
+        agent:
+            agent to be added to the header of the request. Default is 'bookops/NYPL'
+
+    Returns:
+        HTML data as a `bytes` object from the `requests.Response.content` attribute
+        if the request is successful. Returns `None` if the request returns a 4xx
+        response.
+
+    Raises:
+        `requests.exceptions.Timeout` if the request times out.
     """
-    # slow things down a bit
-    time.sleep(0.5)
 
     headers = {"user-agent": agent}
 
-    response = make_request(url, n, total, headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        logger.debug(
+            f"({n} of {total}) Requested page: {response.url} == {response.status_code}"
+        )
+    except Timeout:
+        raise
 
     if response.status_code == requests.codes.ok:
         return response.content
@@ -164,93 +143,52 @@ def get_html(url: str, n: int, total: int, agent: str = "bookops/NYPL") -> bytes
         return None
 
 
-def is_purgable(ebook_status: EbookStatus) -> bool:
+def update_status(metadata: str, ebook_status: EbookStatus) -> EbookStatus:
     """
-    Checks if status or own copies elements indicate the resource
-    can be deleted or not.
+    Searches for significant data within a string extracted from HTML head.script
+    tag to determine the current status of an eBook. A resource should not have its
+    record deleted from Sierra if its HTML contains '"availabilityType":"always"',
+    '"isPreReleaseTitle":true', or '"ownedCopies":' with a value greater than zero.
 
     Args:
-        ebook_status:               named tuple with status data
+        metadata:
+            a string extracted from the HTML head.script tag to be parsed for
+            significant metadata
+        ebook_status: `EbookStatus` object
 
     Returns:
-        bool
-    """
-    if ebook_status.always_available is True:
-        return False
-    elif ebook_status.copies_owned:
-        try:
-            copies = int(ebook_status.copies_owned)
-            if not copies:
-                return True
-            else:
-                return False
-        except ValueError:
-            return True
-        except TypeError:
-            return True
-    else:
-        return True
-
-
-def update_status(metadata, ebook_status):
-    """
-    finds significant data in html.head.script
-    args:
-        html_head_script: str
-        ebook_status: namedtuple
-
-    returns:
-        updated ebook_status
+        An `EbookStatus` object
     """
 
     # title availability
     match_availability = P_AVAILABLE.match(metadata)
     if match_availability:
-        available = match_availability.group(1)
-        if available == "true":
-            available = True
-        elif available == "false":
-            available = False
-        else:
-            available = None
-        ebook_status = ebook_status._replace(available=available)
-
-    # title owned
-    match_owned = P_OWNED.match(metadata)
-    if match_owned:
-        owned = match_owned.group(1)
-        if owned == "true":
-            owned = True
-        elif owned == "false":
-            owned = False
-        else:
-            owned = None
-        ebook_status = ebook_status._replace(owned=owned)
-
+        ebook_status.available = True
+    else:
+        ebook_status.available = False
     # always available
     match_always_available = P_ALWAYS_AVAILABLE.match(metadata)
     if match_always_available:
-        ebook_status = ebook_status._replace(always_available=True)
-
-    # copies available
-    match_copies_available = P_AVAILABLE_COPIES.match(metadata)
-    if match_copies_available:
-        ebook_status = ebook_status._replace(
-            copies_available=match_copies_available.group(1)
-        )
+        ebook_status.always_available = True
 
     # copies owned
     match_copies_owned = P_OWNED_COPIES.match(metadata)
     if match_copies_owned:
-        ebook_status = ebook_status._replace(copies_owned=match_copies_owned.group(1))
+        ebook_status.copies_owned = match_copies_owned.group(1)
 
-    for_removal = is_purgable(ebook_status)
-    ebook_status = ebook_status._replace(for_removal=for_removal)
+    # prerelease
+    match_prerelease = P_IS_PRERELEASE.match(metadata)
+    if match_prerelease:
+        ebook_status.prerelease = True
 
+    if ebook_status.always_available is True:
+        ebook_status.for_removal = False
+        return ebook_status
+    if ebook_status.copies_owned.isnumeric() and int(ebook_status.copies_owned) > 0:
+        ebook_status.for_removal = False
+        return ebook_status
+    if ebook_status.prerelease:
+        ebook_status.for_removal = False
+    else:
+        ebook_status.for_removal = True
     return ebook_status
-
-
-if __name__ == "__main__":
-    import sys
-
-    scrape(sys.argv[1], sys.argv[2], sys.argv[3])

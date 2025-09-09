@@ -1,26 +1,15 @@
 import csv
-from datetime import datetime
+import logging
 import os
 import re
-
+from datetime import datetime
+from typing import Any
 
 P = re.compile(r"^.{8}-.{4}-.{4}-.{4}-.{12}")
 URL_NYPL = "http://ebooks.nypl.org/ContentDetails.htm?ID="
 URL_BPL = "http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID="
 
-
-def counted(f):
-    def wrapped(*args, **kwargs):
-        wrapped.calls += 1
-        return f(*args, **kwargs)
-
-    wrapped.calls = 0
-    return wrapped
-
-
-def count_rows(fh: str):
-    with open(fh, "r") as f:
-        return sum(1 for line in f)
+logger = logging.getLogger(__name__)
 
 
 def dst_main_directory(library: str) -> str:
@@ -44,7 +33,7 @@ def date_subdirectory(library: str) -> str:
     return date_dir
 
 
-def create_dst_csv_fh(library: str, name: str):
+def create_dst_csv_fh(library: str, name: str) -> str:
     """
     Creates csv file handle
 
@@ -74,7 +63,7 @@ def is_reserve_id(i: str) -> bool:
         return False
 
 
-def save2csv(dst_fh, row):
+def save2csv(dst_fh: str, row: list[str]) -> None:
     """
     Appends a list with data to a dst_fh csv
     args:
@@ -91,3 +80,39 @@ def save2csv(dst_fh, row):
             quoting=csv.QUOTE_MINIMAL,
         )
         out.writerow(row)
+
+
+def logger_dict_config() -> dict[str, Any]:
+    """Create a dictionary to configure logger."""
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "basic": {
+                "format": "%(app)s-%(asctime)s-%(filename)s-%(lineno)d-%(levelname)s-%(message)s",  # noqa: E501
+                "defaults": {"app": "overdrive_reconcile"},
+            },
+        },
+        "handlers": {
+            "stream": {
+                "class": "logging.StreamHandler",
+                "formatter": "basic",
+                "level": "DEBUG",
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "basic",
+                "level": "DEBUG",
+                "filename": "overdrive_reconcile.log",
+                "maxBytes": 10 * 1024 * 1024,
+                "backupCount": 5,
+            },
+        },
+        "loggers": {
+            "overdrive_reconcile": {
+                "handlers": ["stream", "file"],
+                "level": "DEBUG",
+                "propagate": True,
+            },
+        },
+    }
