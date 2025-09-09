@@ -29,24 +29,25 @@ def test_reconcile(
     assert log_msgs[0].startswith("All output reports will be saved to ")
     assert log_msgs[1] == "Launching reconciliation process."
     assert log_msgs[2] == "Parsing Sierra Export data."
-    assert log_msgs[3] == "Retrieving data from NYPL Overdrive Digital Inventory API."
-    assert log_msgs[4] == "Merging Sierra and Overdrive API sets."
-    assert log_msgs[5] == "Deduplication of Sierra dataset on Reserve ID."
-    assert log_msgs[6].startswith("Identified 0 duplicate records in Sierra export.")
-    assert log_msgs[7].startswith("Identified 3 unique Reserve IDs in Sierra export.")
-    assert log_msgs[8] == "Normalizing Sierra and Overdrive API Reserve IDs."
-    assert log_msgs[9] == "Launching analysis."
-    assert log_msgs[10].startswith("Identified 3 resources available.")
-    assert log_msgs[11] == "Creating full union of both sets."
-    assert log_msgs[12] == "Identifying Reserve IDs missing from Sierra."
-    assert log_msgs[13] == "Checking ids 1-1 of 1."
-    assert log_msgs[14].startswith("Identified 1 missing resources")
-    assert log_msgs[15] == "Finding resources to be deleted in Sierra."
-    assert log_msgs[16].startswith("Identified 2 resources that can be deleted")
-    assert log_msgs[17].startswith("Verifying records for deletion via web scraping")
-    assert log_msgs[18].startswith("(1 of 2) Requested page: http://ebooks.nypl.org/")
-    assert log_msgs[19].startswith("(2 of 2) Requested page: http://ebooks.nypl.org/")
-    assert log_msgs[20] == "Reconciliation complete."
+    assert (
+        log_msgs[3] == "Retrieving data from Overdrive Digital Inventory API for NYPL."
+    )
+    assert log_msgs[4] == "Deduplicating Sierra export data on reserve ID."
+    assert log_msgs[5].startswith("Identified 0 duplicate record(s) in Sierra export.")
+    assert log_msgs[6].startswith("Identified 3 unique reserve ID(s) in Sierra export.")
+    assert log_msgs[7] == "Launching analysis."
+    assert log_msgs[8] == "Merging Sierra and Overdrive API sets."
+    assert log_msgs[9].startswith("Identified 1 available resource(s).")
+    assert log_msgs[10] == "Creating full union of both sets."
+    assert log_msgs[11] == "Identifying reserve IDs missing from Sierra."
+    assert log_msgs[12] == "Checking ids 1-1 of 1."
+    assert log_msgs[13].startswith("Identified 1 missing resource(s)")
+    assert log_msgs[14] == "Finding resources to be deleted from Sierra."
+    assert log_msgs[15].startswith("Identified 2 resource(s) that can be deleted")
+    assert log_msgs[16].startswith("Verifying records for deletion via web scraping")
+    assert log_msgs[17].startswith("(1 of 2) Requested page: http://ebooks.nypl.org/")
+    assert log_msgs[18].startswith("(2 of 2) Requested page: http://ebooks.nypl.org/")
+    assert log_msgs[19] == "Reconciliation complete."
     assert sorted(file_list) == [
         "NYPL-FINAL-available-resources.csv",
         "NYPL-FINAL-duplicate-reserveid-sierra.csv",

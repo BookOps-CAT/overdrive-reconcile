@@ -33,21 +33,20 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
         '{library}-FINAL-duplicate-reserveid-sierra.csv'. Unique reserve IDs are
         written to '{library}-unique-reserveid-sierra.csv'.
     """
-    logger.debug("Deduplication of Sierra dataset on Reserve ID.")
     dups_fh = f"{subdir}/{library}-FINAL-duplicate-reserveid-sierra.csv"
     unique_fh = f"{subdir}/{library}-unique-reserveid-sierra.csv"
 
     ddf = df[df.duplicated(subset=["reserve_id"], keep="last")]
     ddf.to_csv(dups_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     logger.info(
-        f"Identified {ddf.shape[0]} duplicate records in Sierra export. "
+        f"Identified {ddf.shape[0]} duplicate record(s) in Sierra export. "
         f"Report saved to: {dups_fh}"
     )
 
     udf = df.drop_duplicates(subset=["reserve_id"], keep="last")
     udf.to_csv(unique_fh, index=False, header=False, columns=["bib_no", "reserve_id"])
     logger.info(
-        f"Identified {udf.shape[0]} unique Reserve IDs in Sierra export. "
+        f"Identified {udf.shape[0]} unique reserve ID(s) in Sierra export. "
         f"Report saved to: {unique_fh}"
     )
 
@@ -68,7 +67,7 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     # load api creds into envars
     get_overdrive_api_creds(library=library)
 
-    # reports directory
+    # create directory for output files
     subdir = date_subdirectory(library)
     logger.debug(f"All output reports will be saved to {subdir}.")
 
@@ -85,13 +84,12 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     logger.debug("Parsing Sierra Export data.")
     prep_reserve_ids_in_sierra_export(library, sierra_export_fh)
 
-    # prepare data from Overdrive Digital Inventory API
-    logger.debug(f"Retrieving data from {library} Overdrive Digital Inventory API.")
+    # retrieve data from Overdrive Digital Inventory API
+    logger.debug(f"Retrieving data from Overdrive Digital Inventory API for {library}.")
     get_inventory(library)
 
-    # merge both datasets
-    # retireve Sierra data
-    logger.debug("Merging Sierra and Overdrive API sets.")
+    # read prepped Sierra export data and deduplicate reserve IDs
+    logger.debug("Deduplicating Sierra export data on reserve ID.")
     df = pd.read_csv(
         f"{subdir}/{library}-sierra-prepped-reserve-ids.csv",
         names=["bib_no", "reserve_id"],
@@ -99,7 +97,7 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     dedup_on_reserve_id(library, df, subdir)
 
     # use deduped sierra reserve ids for analysis
-    logger.debug("Normalizing Sierra and Overdrive API Reserve IDs.")
+    logger.debug("Launching analysis.")
     sdf = pd.read_csv(
         f"{subdir}/{library}-unique-reserveid-sierra.csv",
         names=["bib_no", "reserve_id"],
@@ -110,8 +108,8 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
     )
     edf["reserve_id"] = edf["reserve_id"].str.lower()
 
-    logger.debug("Launching analysis.")
-    # find inner joint (available - present in both sets)
+    # create inner join representing available resources (ie. IDs present in both sets)
+    logger.debug("Merging Sierra and Overdrive API sets.")
     adf = pd.merge(sdf, edf, on="reserve_id")
     adf["url"] = url + adf["reserve_id"].astype(str)
 
@@ -119,34 +117,35 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
         avail_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
     )
     logger.info(
-        f"Identified {df.shape[0]} resources available. Report saved to: {avail_fh}"
+        f"Identified {adf.shape[0]} available resource(s). Report saved to: {avail_fh}"
     )
 
     # create full union of both sets
     logger.debug("Creating full union of both sets.")
     fdf = pd.merge(sdf, edf, on="reserve_id", how="outer", indicator=True)
 
-    # find missing resources
-    logger.debug("Identifying Reserve IDs missing from Sierra.")
+    # find missing resources (ie. IDs only present in Overdrive export)
+    logger.debug("Identifying reserve IDs missing from Sierra.")
     cdf = fdf[fdf["_merge"] == "right_only"].copy()
     cdf.to_csv(import_fh, index=False, header=False, columns=["reserve_id"])
 
+    # verify that missing resources have active licenses
     mdf = verify_missing_resources(library=library, df=cdf)
     mdf["url"] = url + mdf["reserve_id"].astype(str)
     mdf.to_csv(miss_fh, index=False, header=False, columns=["reserve_id", "url"])
     logger.info(
-        f"Identified {mdf.shape[0]} missing resources. Report saved to: {miss_fh}"
+        f"Identified {mdf.shape[0]} missing resource(s). Report saved to: {miss_fh}"
     )
 
-    # find resources for deletion
-    logger.debug("Finding resources to be deleted in Sierra.")
+    # find resources to be deleted (ie. IDs only present in Sierra export)
+    logger.debug("Finding resources to be deleted from Sierra.")
     ddf = fdf[fdf["_merge"] == "left_only"].copy()
     ddf["url"] = url + ddf["reserve_id"].astype(str)
     ddf.to_csv(
         del_fh, index=False, header=False, columns=["bib_no", "reserve_id", "url"]
     )
     logger.info(
-        f"Identified {ddf.shape[0]} resources that can be deleted from Sierra. "
+        f"Identified {ddf.shape[0]} resource(s) that can be deleted from Sierra. "
         f"Report saved to: {del_fh}"
     )
 
