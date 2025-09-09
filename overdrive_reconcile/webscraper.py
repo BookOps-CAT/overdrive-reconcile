@@ -1,5 +1,5 @@
 """
-Use to validate Sierra-Overdrive API deletions
+Scrape Overdrive website for license data to validate list of resources to be deleted.
 """
 
 import csv
@@ -35,11 +35,17 @@ class EbookStatus:
 
 def scrape(library: str, src_fh: str, start: int = 0) -> None:
     """
-    Launches web scraping of OverDrive catalog
+    Launches web scraping of OverDrive catalog from `reconcile` `webscrape` command.
 
     Args:
-        library:                library code
-        src_fh:                 source data file handle
+        library: 'NYPL' or 'BPL'
+        src_fh: path to file containing reserve IDs to be verified.
+        start: the first row within `src_fh` containing the ID to be verified
+
+    Returns:
+        None. Reserve IDs for records to be deleted from Sierra is written to
+        '{library}-FINAL-for-deletion-verified-resources.csv' and records which were
+        falsely identified are written to '{library}-false-positives-for-deletion.csv'.
     """
     with open(src_fh, "r") as count:
         total = sum(1 for line in count)
@@ -65,18 +71,22 @@ def scrape(library: str, src_fh: str, start: int = 0) -> None:
                     else:
                         save2csv(reject_fh, row)
             n += 1
+            time.sleep(0.5)
 
 
 def get_ebook_status(html: bytes) -> EbookStatus:
     """
-    parses HTML, finds significant portion of metadata in document head, and
-    interprets important bits, such as availability of ebook, ownership,
-    available copies, and own copies by the library
+    Parses HTML to determine whether the resource is still available.
 
-    args:
-        html: response.content
-    returns:
-        (available, owned, copies_available, copies_owned): namedtuple
+    The parser first searches for a significant portion of metadata in the document
+    head before interpreting other portions of the html to determine whether the
+    resource is still available or should be deleted.
+
+    Args:
+        html: `bytes` object from `requests.Response.content`
+
+    Returns:
+        `EbookStatus` object containing significant metadata for resource.
     """
 
     ebook_status = EbookStatus()
@@ -94,17 +104,28 @@ def get_html(
     url: str, n: int, total: int, agent: str = "bookops/NYPL"
 ) -> Optional[bytes]:
     """
-    retrieves html code from given url
-    args:
-        url:                    URL of a page to be requested
-        agent:                  agent header of the request
-        n:                      resource sequence #
-        total:                  total number of resources to request
-    returns:
-        page
+    Retrieves HTML for a given url.
+
+    Args:
+        url:
+            URL to be requested
+        n:
+            The sequence number for the resource (ie. the row number from the input csv)
+            to be used in a log message.
+        total:
+            The total number of resources to be requested (ie. the total number of rows
+            in the input csv) to be used in a log message.
+        agent:
+            agent to be added to the header of the request. Default is 'bookops/NYPL'
+
+    Returns:
+        HTML data as a `bytes` object from the `requests.Response.content` attribute
+        if the request is successful. Returns `None` if the request returns a 4xx
+        response.
+
+    Raises:
+        `requests.exceptions.Timeout` if the request times out.
     """
-    # slow things down a bit
-    time.sleep(0.5)
 
     headers = {"user-agent": agent}
 
@@ -124,13 +145,19 @@ def get_html(
 
 def update_status(metadata: str, ebook_status: EbookStatus) -> EbookStatus:
     """
-    finds significant data in html.head.script
-    args:
-        html_head_script: str
-        ebook_status: namedtuple
+    Searches for significant data within a string extracted from HTML head.script
+    tag to determine the current status of an eBook. A resource should not have its
+    record deleted from Sierra if its HTML contains '"availabilityType":"always"',
+    '"isPreReleaseTitle":true', or '"ownedCopies":' with a value greater than zero.
 
-    returns:
-        updated ebook_status
+    Args:
+        metadata:
+            a string extracted from the HTML head.script tag to be parsed for
+            significant metadata
+        ebook_status: `EbookStatus` object
+
+    Returns:
+        An `EbookStatus` object
     """
 
     # title availability
