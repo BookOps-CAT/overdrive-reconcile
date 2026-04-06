@@ -19,10 +19,12 @@ dependencies = [
     "bookops-overdrive @ git+https://github.com/BookOps-CAT/bookops-overdrive.git"
 ]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.4"
-pytest-cov = "^6.2"
-pytest-mock = "^3.15"
+[dependency-groups]
+dev = [
+    "pytest>=8.4,<9",
+    "pytest-cov>=6.2,<7",
+    "pytest-mock>=3.15,<4",
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
