@@ -37,6 +37,7 @@ Stop: b*
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|b|has |"overdrive"|
 |AND|BIBLIOGRAPHIC|MARC Tag 856\|u|All Fields don't have|"serialssolutions"|
 |AND|BIBLIOGRAPHIC|Call No.|starts with|"enypl"|
+|AND|BIBLIOGRAPHIC|Bib Level|not equal to|"s"|
 
 ### BPL
 Store Record Type: BIBLIOGRAPHIC b
@@ -51,7 +52,7 @@ Stop: b*
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|a|not equal to|""|
 |AND|BIBLIOGRAPHIC|MARC Tag 037\|b|has|"overdrive"|
 |AND|BIBLIOGRAPHIC|MARC Tag 856\|u|All Fields don't have|"serialssolutions"|
-|AND|BIBLIOGRAPHIC|CALL No.|starts with|"e"|
+|AND|BIBLIOGRAPHIC|Bib Level|not equal to|"s"|
 
 ### Both Systems
 Export the following fields from the list:
@@ -137,14 +138,9 @@ After identifying resources that can be deleted from Sierra the list is verified
 
 ## Changelog
 
-### [1.2.0] - (9/9/2025)
-#### Added
-
+### [1.2.1] - (5/21/2026)
 #### Changed
-
-#### Fixed
-
-#### Removed
++ `json` query used in sierra to exclude serial records
 
 ### [1.1.0] - (2/14/2024)
 #### Added
@@ -166,4 +162,5 @@ After identifying resources that can be deleted from Sierra the list is verified
 #### Removed
 + removed unused dependencies
 
+[1.2.1]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.1.0...v1.2.1
 [1.1.0]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.0.0...v1.1.0

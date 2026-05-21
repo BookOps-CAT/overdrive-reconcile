@@ -11,10 +11,7 @@
       },
       "expr": {
         "op": "not_equal",
-        "operands": [
-          "wasess",
-          ""
-        ]
+        "operands": ["wasess", ""]
       }
     },
     "and",
@@ -30,10 +27,7 @@
       },
       "expr": {
         "op": "not_equal",
-        "operands": [
-          "",
-          ""
-        ]
+        "operands": ["", ""]
       }
     },
     "and",
@@ -49,10 +43,7 @@
       },
       "expr": {
         "op": "has",
-        "operands": [
-          "overdrive",
-          ""
-        ]
+        "operands": ["overdrive", ""]
       }
     },
     "and",
@@ -68,10 +59,7 @@
       },
       "expr": {
         "op": "all_fields_not_have",
-        "operands": [
-          "serialssolutions",
-          ""
-        ]
+        "operands": ["serialssolutions", ""]
       }
     },
     "and",
@@ -86,10 +74,19 @@
       },
       "expr": {
         "op": "starts_with",
-        "operands": [
-          "e",
-          ""
-        ]
+        "operands": ["e", ""]
+      }
+    },
+    {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "id": 29
+      },
+      "expr": {
+        "op": "not_equal",
+        "operands": ["s", ""]
       }
     }
   ]

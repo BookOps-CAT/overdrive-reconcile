@@ -1,6 +1,6 @@
 [project]
 name = "overdrive-reconcile"
-version = "1.2.0"
+version = "1.2.1"
 license = "MIT"
 description = "A set of scripts used for reconciliation of resources between NYPL & BPL Sierra and OverDrive Platform."
 authors = [{name = "Tomek",email = "klingaroo@gmail.com"}]

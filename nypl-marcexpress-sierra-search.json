@@ -12,10 +12,7 @@
       },
       "expr": {
         "op": "not_equal",
-        "operands": [
-          "",
-          ""
-        ]
+        "operands": ["", ""]
       }
     },
     "and",
@@ -31,10 +28,7 @@
       },
       "expr": {
         "op": "has",
-        "operands": [
-          "overdrive",
-          ""
-        ]
+        "operands": ["overdrive", ""]
       }
     },
     "and",
@@ -50,10 +44,7 @@
       },
       "expr": {
         "op": "all_fields_not_have",
-        "operands": [
-          "serialssolutions",
-          ""
-        ]
+        "operands": ["serialssolutions", ""]
       }
     },
     "and",
@@ -68,10 +59,20 @@
       },
       "expr": {
         "op": "starts_with",
-        "operands": [
-          "enypl",
-          ""
-        ]
+        "operands": ["enypl", ""]
+      }
+    },
+    "and",
+    {
+      "target": {
+        "record": {
+          "type": "bib"
+        },
+        "id": 29
+      },
+      "expr": {
+        "op": "not_equal",
+        "operands": ["s", ""]
       }
     }
   ]
