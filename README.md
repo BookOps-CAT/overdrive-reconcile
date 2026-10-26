@@ -138,6 +138,31 @@ After identifying resources that can be deleted from Sierra the list is verified
 
 ## Changelog
 
+### [1.2.2] - (10/26/2026)
+#### Changed
++ updated github actions to use uv and setup-uv
++ updated dependencies:
+  `beautifulsoup4` 4.13.4 -> 4.15.0
+  `certifi` 2025.8.3 -> 2026.10.23
+  `charset-normalizer` 3.4.2 -> 3.5.2
+  `idna` 3.10 -> 3.20
+  `numpy` 2.3.2 -> 2.5.4
+  `pandas-stubs` 2.3.0.250703 -> 3.0.5.260914
+  `pandas` 3.0.2 -> 3.1.0
+  `python-dateutil` 2.9.0post0 -> 3.0.0
+  `pyyaml` 6.0.2 -> 6.0.3
+  `requests` 2.32.4 -> 2.34.2
+  `soupsieve` 2.7 -> 3.0.4 
+  `types-html5lib` 1.1.11.2025.07.08 -> 1.1.11.20260518
+  `types-pyyaml` 6.0.12.20250516 -> 6.0.12.20260906
+  `types-requests` 2.32.4.20250611 -> 2.33.0.20261006
+  `typing-extensions` 4.14.1 -> 4.16.0
+  `tzdata` 2025.2 -> 2026.5
+  `urllib3` 2.5.0 -> 2.8.0
++ updated dev dependencies:
+  + `pytest` 8.4.2 -> 9.1.1
+  + `pytest-cov` 6.2.1 -> 7.1.0 
+  + `pytest-mock` 3.15.0 -> 3.17.0  
 ### [1.2.1] - (5/21/2026)
 #### Changed
 + `json` query used in sierra to exclude serial records
@@ -162,5 +187,6 @@ After identifying resources that can be deleted from Sierra the list is verified
 #### Removed
 + removed unused dependencies
 
+[1.2.2]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.2.1...v1.2.2
 [1.2.1]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.1.0...v1.2.1
 [1.1.0]: https://github.com/BookOps-CAT/overdrive-reconcile/compare/1.0.0...v1.1.0

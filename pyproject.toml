@@ -8,14 +8,14 @@ readme = "README.md"
 keywords = ["cataloging", "bibliographic records", "electronic resources"]
 requires-python = ">=3.12"
 dependencies = [
-    "pandas (>=3.0)",
-    "PyYAML (>=6.0)",
-    "beautifulsoup4 (>=4.13)",
-    "requests (>=2.32,<3.0.0)",
-    "pandas-stubs (>=2.2.0)",
-    "types-beautifulsoup4 (>=4.12.0)",
-    "types-pyyaml (>=6.0.12)",
-    "types-requests (>=2.32.4)",
+    "pandas>=3.0",
+    "PyYAML>=6.0",
+    "beautifulsoup4>=4.13",
+    "requests>=2.32",
+    "pandas-stubs>=2.2.0",
+    "types-beautifulsoup4>=4.12.0",
+    "types-pyyaml>=6.0.12",
+    "types-requests>=2.32.4",
     "bookops-overdrive @ git+https://github.com/BookOps-CAT/bookops-overdrive.git"
 ]
 
