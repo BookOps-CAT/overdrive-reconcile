@@ -11,12 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def fresh_start(files: list[str]) -> None:
-    """
-    Cleans up any duplicate files in the 'files' directory resulting
-    from pervious jobs
+    """Clean up any duplicate files resulting from pervious jobs.
 
     Args:
         files:              list of file paths to be deleted
+
     """
     for file in files:
         if os.path.exists(file):
@@ -24,8 +23,7 @@ def fresh_start(files: list[str]) -> None:
 
 
 def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
-    """
-    Validates OverDrive Reserve IDs exported from Sierra for further analysis.
+    """Validate OverDrive Reserve IDs exported from Sierra for further analysis.
 
     It's common to see print orders attached to e-resource bib records and these
     records must be filtered out in order to ensure they are not included in the
@@ -47,6 +45,7 @@ def prep_reserve_ids_in_sierra_export(library: str, src_fh: str) -> None:
         None. Reserve IDs are written to csvs containing valid IDs (eg.
         'NYPL-sierra-prepped-reserve-ids.csv') and rejected IDs (eg.
         'NYPL-sierra-rejected-not-overdrive-ids.csv')
+
     """
     dst_validated_fh = create_dst_csv_fh(library, "sierra-prepped-reserve-ids")
     dst_rejected_fh = create_dst_csv_fh(library, "sierra-rejected-not-overdrive-ids")

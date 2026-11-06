@@ -61,7 +61,7 @@ def test_create_dst_csv_fh(test_main_dir):
 
 def test_logger_dict_confit():
     logger_config = logger_dict_config()
-    assert sorted(list(logger_config.keys())) == [
+    assert sorted(logger_config.keys()) == [
         "disable_existing_loggers",
         "formatters",
         "handlers",

@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
-    """
-    Deduplicates given dataframe on reserve ID leaving the latest record.
-    Does not consider the situation where a single bib record contains duplicate
-    reserve IDs.
+    """Deduplicate given dataframe on reserve ID leaving the latest record.
+
+    This method does not consider the situation where a single bib record
+    contains duplicate reserve IDs.
 
     Args:
         library: 'NYPL' or 'BPL'
@@ -32,6 +32,7 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
         None. Bib IDs for records containing duplicate reserve IDs are written to
         '{library}-FINAL-duplicate-reserveid-sierra.csv'. Unique reserve IDs are
         written to '{library}-unique-reserveid-sierra.csv'.
+
     """
     dups_fh = f"{subdir}/{library}-FINAL-duplicate-reserveid-sierra.csv"
     unique_fh = f"{subdir}/{library}-unique-reserveid-sierra.csv"
@@ -53,8 +54,7 @@ def dedup_on_reserve_id(library: str, df: pd.DataFrame, subdir: str) -> None:
 
 
 def reconcile(library: str, sierra_export_fh: str) -> None:
-    """
-    Launches reconciliation process for `reconcile` command in `run.py`.
+    """Launch reconciliation process for `reconcile` command in `run.py`.
 
     Args:
         library:
@@ -64,6 +64,7 @@ def reconcile(library: str, sierra_export_fh: str) -> None:
 
     Returns:
         None. Output is written to .csv files in 'files/{library}/{date}/'.
+
     """
     # load api creds into envars
     get_overdrive_api_creds(library=library)

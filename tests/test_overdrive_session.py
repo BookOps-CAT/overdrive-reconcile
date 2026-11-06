@@ -21,9 +21,14 @@ def test_get_overdrive_api_creds_nypl(mock_creds):
     assert "NYPL_COLL_TOKEN_EXPIRATION" in os.environ.keys()
 
 
-def test_get_overdrive_api_creds_bpl():
-    result = get_overdrive_api_creds("bpl")
-    assert result == NotImplemented
+def test_get_overdrive_api_creds_bpl(mock_creds):
+    get_overdrive_api_creds("bpl")
+
+    assert "BPL_CLIENT_KEY" in os.environ.keys()
+    assert "BPL_CLIENT_SECRET" in os.environ.keys()
+    assert "BPL_LIBRARY_ID" in os.environ.keys()
+    assert "BPL_COLL_TOKEN" in os.environ.keys()
+    assert "BPL_COLL_TOKEN_EXPIRATION" in os.environ.keys()
 
 
 def test_get_overdrive_api_creds_other():
@@ -67,4 +72,4 @@ def test_verify_missing_resources(mock_session_response, test_main_dir, caplog):
 def test_get_batches():
     full_list = list(range(1, 201))
     batches = get_batches(full_list, 20)
-    assert len([i for i in batches]) == 10
+    assert len(list(batches)) == 10

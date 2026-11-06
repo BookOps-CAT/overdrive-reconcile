@@ -1,6 +1,4 @@
-"""
-Scrape Overdrive website for license data to validate list of resources to be deleted.
-"""
+"""Scrape Overdrive website for license data to validate resources to be deleted."""
 
 import csv
 import logging
@@ -26,6 +24,8 @@ P_OWNED_COPIES = re.compile(r'.*"ownedCopies":(\d{1,}),".*', re.DOTALL)
 
 @dataclass
 class EbookStatus:
+    """Current status of an Overdrive eBook/Audiobook."""
+
     always_available: Optional[bool] = None
     available: Optional[bool] = None
     copies_owned: str = ""
@@ -34,8 +34,7 @@ class EbookStatus:
 
 
 def scrape(library: str, src_fh: str, start: int = 0) -> None:
-    """
-    Launches web scraping of OverDrive catalog from `reconcile` `webscrape` command.
+    """Launch web scraping of OverDrive catalog from `reconcile` `webscrape` command.
 
     Args:
         library: 'NYPL' or 'BPL'
@@ -46,6 +45,7 @@ def scrape(library: str, src_fh: str, start: int = 0) -> None:
         None. Reserve IDs for records to be deleted from Sierra is written to
         '{library}-FINAL-for-deletion-verified-resources.csv' and records which were
         falsely identified are written to '{library}-false-positives-for-deletion.csv'.
+
     """
     with open(src_fh, "r") as count:
         total = sum(1 for line in count)
@@ -75,8 +75,7 @@ def scrape(library: str, src_fh: str, start: int = 0) -> None:
 
 
 def get_ebook_status(html: bytes) -> EbookStatus:
-    """
-    Parses HTML to determine whether the resource is still available.
+    """Parse HTML to determine whether the resource is still available.
 
     The parser first searches for a significant portion of metadata in the document
     head before interpreting other portions of the html to determine whether the
@@ -87,8 +86,8 @@ def get_ebook_status(html: bytes) -> EbookStatus:
 
     Returns:
         `EbookStatus` object containing significant metadata for resource.
-    """
 
+    """
     ebook_status = EbookStatus()
     soup = BeautifulSoup(html, "html.parser", from_encoding="utf-8")
     scripts = soup.find_all("script")
@@ -103,8 +102,7 @@ def get_ebook_status(html: bytes) -> EbookStatus:
 def get_html(
     url: str, n: int, total: int, agent: str = "bookops/NYPL"
 ) -> Optional[bytes]:
-    """
-    Retrieves HTML for a given url.
+    """Retrieve HTML for a given url.
 
     Args:
         url:
@@ -125,8 +123,8 @@ def get_html(
 
     Raises:
         `requests.exceptions.Timeout` if the request times out.
-    """
 
+    """
     headers = {"user-agent": agent}
 
     try:
@@ -144,10 +142,11 @@ def get_html(
 
 
 def update_status(metadata: str, ebook_status: EbookStatus) -> EbookStatus:
-    """
-    Searches for significant data within a string extracted from HTML head.script
-    tag to determine the current status of an eBook. A resource should not have its
-    record deleted from Sierra if its HTML contains '"availabilityType":"always"',
+    """Search within an HTML string to determin the current status of an eBook.
+
+    This method extracts significant data from the HTML head.script tag to determine
+    a resource's current availability. A resource should not have its record deleted
+    from Sierra if its HTML contains '"availabilityType":"always"',
     '"isPreReleaseTitle":true', or '"ownedCopies":' with a value greater than zero.
 
     Args:
@@ -158,8 +157,8 @@ def update_status(metadata: str, ebook_status: EbookStatus) -> EbookStatus:
 
     Returns:
         An `EbookStatus` object
-    """
 
+    """
     # title availability
     match_availability = P_AVAILABLE.match(metadata)
     if match_availability:

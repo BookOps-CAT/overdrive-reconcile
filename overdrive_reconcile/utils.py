@@ -1,3 +1,5 @@
+"""Utility functions that support file handling, logger config, and ID validation."""
+
 import csv
 import logging
 import os
@@ -13,14 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 def dst_main_directory(library: str) -> str:
-    """
-    Main directory for report files resulting from
-    the reconciliation process.
-    """
+    """Create the main directory for report files created during reconciliation."""
     return f"./files/{library}"
 
 
 def date_subdirectory(library: str) -> str:
+    """Create a subdirectory for a specific date's reconciliation."""
     today = datetime.now().date()
 
     main_dir = dst_main_directory(library)
@@ -34,28 +34,27 @@ def date_subdirectory(library: str) -> str:
 
 
 def create_dst_csv_fh(library: str, name: str) -> str:
-    """
-    Creates csv file handle
+    """Create a csv file handle.
 
     Args:
         library:                library code to prefix file handle
         name:                   file name
-    """
 
+    """
     dst_dir = date_subdirectory(library)
     out = f"{dst_dir}/{library}-{name}.csv"
     return out
 
 
 def is_reserve_id(i: str) -> bool:
-    """
-    Identifies if passed string is a OverDrive Reserve ID or not
+    """Identify if a string is an OverDrive Reserve ID or not.
 
     Args:
         i:                  id string to be evaluated
 
     Returns:
         bool
+
     """
     if re.match(P, i):
         return True
@@ -64,13 +63,16 @@ def is_reserve_id(i: str) -> bool:
 
 
 def save2csv(dst_fh: str, row: list[str]) -> None:
-    """
-    Appends a list with data to a dst_fh csv
-    args:
-        dst_fh: str, output file
-        row: list, list of values to write in a row
-    """
+    """Append a list with data to a destination csv file.
 
+    Args:
+        dst_fh: str, output file
+        row: list, list of values to write in a row.
+
+    Returns:
+        None.
+
+    """
     with open(dst_fh, "a", encoding="utf-8") as csvfile:
         out = csv.writer(
             csvfile,
@@ -91,7 +93,7 @@ def logger_dict_config() -> dict[str, Any]:
             "basic": {
                 "format": "%(app)s-%(asctime)s-%(filename)s-%(lineno)d-%(levelname)s-%(message)s",  # noqa: E501
                 "defaults": {"app": "overdrive_reconcile"},
-            },
+            }
         },
         "handlers": {
             "stream": {
@@ -113,6 +115,6 @@ def logger_dict_config() -> dict[str, Any]:
                 "handlers": ["stream", "file"],
                 "level": "DEBUG",
                 "propagate": True,
-            },
+            }
         },
     }

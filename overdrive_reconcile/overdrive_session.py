@@ -1,4 +1,4 @@
-"""Functions that allow for interactions with Overdrive Discovery APIs"""
+"""Functions that allow for interactions with Overdrive Discovery APIs."""
 
 import datetime
 import logging
@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_overdrive_api_creds(library: str) -> None:
-    """
-    Retrieves Overdrive API credentials for the given library.
+    """Retrieve Overdrive API credentials for the given library.
 
     Args:
         library: 'NYPL' or 'BPL'
 
     Returns:
         None. Credentials are loaded into environment variables.
+
     """
     library = library.upper()
     if library == "NYPL":
@@ -32,7 +32,7 @@ def get_overdrive_api_creds(library: str) -> None:
         os.environ["OVERDRIVE_URL"] = (
             "http://digitalbooks.brooklynpubliclibrary.org/ContentDetails.htm?ID="
         )
-        return NotImplemented
+        fh = ".cred/.overdrive/bpl_overdrive_api.yaml"
     else:
         raise ValueError("Invalid library code passed")
     with open(os.path.join(os.environ["USERPROFILE"], fh), "r") as f:
@@ -46,14 +46,17 @@ def get_overdrive_api_creds(library: str) -> None:
 
 
 def get_inventory(library: str) -> None:
-    """
-    Retrieves a list of registry IDs from the Overload Digital Inventory API
-    representing the given library's entire digital collection. The results
-    are saved to a csv (eg. 'NYPL-overdrive-api-reserve-ids.csv').
+    """Retrieve a list of registry IDs from the Overload Digital Inventory API.
+
+    Results from the Digital Inventory API representing the given library's
+    entire digital collection. The results are saved to a csv
+    (eg. 'NYPL-overdrive-api-reserve-ids.csv').
+
     Args:
         library: 'NYPL' or 'BPL'
     Returns:
-        None
+        None.
+
     """
     out_file = create_dst_csv_fh(library, "overdrive-api-reserve-ids")
     token = OverdriveAccessToken(
@@ -72,9 +75,9 @@ def get_inventory(library: str) -> None:
 
 
 def refresh_collection_token(creds: dict[str, str], cred_file: str) -> dict[str, str]:
-    """
-    Retrieve a new collection token for a given library and write the collection token
-    to a yaml file containing that library's API credentials.
+    """Retrieve a new collection token for a given library.
+
+    The collection is written to the yaml file containing the library's API credentials.
 
     Args:
         creds: the library's API credentials as a dictionary
@@ -83,6 +86,7 @@ def refresh_collection_token(creds: dict[str, str], cred_file: str) -> dict[str,
     Returns:
         the library's API credentials as a dictionary with a new collection token
         and collection token expiration
+
     """
     token = OverdriveAccessToken(key=creds["CLIENT_KEY"], secret=creds["CLIENT_SECRET"])
     with OverdriveSession(authorization=token) as session:
@@ -110,16 +114,15 @@ def get_batches(iterable: list[str], size: int) -> Generator[list[str], None, No
 
 
 def verify_missing_resources(library: str, df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Query the Overdrive Metadata API to confirm the availability of titles whose reserve
-    IDs have been identified as lacking records in Sierra.
+    """Identify titles for which the library has a license which lack records in Sierra.
 
-    This check is conducted using the list of reserve IDs representing titles missing
-    records in Sierra. The list is created from the outer merge of reserve IDs in
-    Overdrive records exported from Sierra and reserve IDs retrieved from the Overdrive
-    Digital Inventory API. This check is necessary in order to confirm that a record
-    should be imported into Sierra because the library has an active license for the
-    title.
+    This method queries the Overdrive Metadata API to confirm the availability
+    of titles whose reserve IDs have been identified as lacking records in Sierra.
+    The list of reserve IDs that are checked is created from the outer merge of
+    reserve IDs in Overdrive records exported from Sierra and reserve IDs retrieved
+    from the Overdrive Digital Inventory API. This check is necessary in order to
+    confirm that a record should be imported into Sierra because the library has
+    an active license for the title.
 
     Args:
         library: 'NYPL' or 'BPL'
@@ -127,6 +130,7 @@ def verify_missing_resources(library: str, df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         a `pandas.DataFrame` object containing only those reserve IDs from the input
         that have active licenses.
+
     """
     token = OverdriveAccessToken(
         key=os.environ[f"{library}_CLIENT_KEY"],
@@ -147,6 +151,7 @@ def verify_missing_resources(library: str, df: pd.DataFrame) -> pd.DataFrame:
                     i.get("id")
                     for i in response.json()["metadata"]
                     if i.get("isOwnedByCollections")
+                    and i.get("mediaType") in ["eBook", "Audiobook"]
                 ]
             )
     return pd.DataFrame(data={"reserve_id": available_ids})

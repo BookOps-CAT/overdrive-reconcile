@@ -77,8 +77,7 @@ def test_get_html_timeout(mock_webscrape_timeout):
 def test_scrape(test_csv, test_main_dir, mock_webscrape_false_positive):
     scrape("NYPL", "for-deletion-sample.csv")
     with open(
-        f"{test_main_dir}/2025-01-01/NYPL-false-positives-for-deletion.csv",
-        "r",
+        f"{test_main_dir}/2025-01-01/NYPL-false-positives-for-deletion.csv", "r"
     ) as f:
         assert len(f.read().strip()) > 0
 

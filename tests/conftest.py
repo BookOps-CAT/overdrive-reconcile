@@ -98,6 +98,7 @@ def mock_creds(mocker, mock_now):
     yaml_string = ""
     for k, v in creds.items():
         env_dict[f"NYPL_{k}"] = v
+        env_dict[f"BPL_{k}"] = v
         yaml_string += f"{k}: '{v}'\n"
     m = mocker.mock_open(read_data=yaml_string)
     mocker.patch("overdrive_reconcile.overdrive_session.open", m)
@@ -164,9 +165,12 @@ def mock_session_response(monkeypatch, mock_creds):
         return MockHTTPResponse({"collectionToken": "foo"})
 
     def mock_bulk_metadata(*args, **kwargs):
-        return MockHTTPResponse(
-            {"metadata": [{"isOwnedByCollections": True, "id": reserve_ids[0]}]}
-        )
+        response = {
+            "mediaType": "eBook",
+            "isOwnedByCollections": True,
+            "id": reserve_ids[0],
+        }
+        return MockHTTPResponse({"metadata": [response]})
 
     def mock_inventory(*args, **kwargs):
         return MockHTTPResponse({"files": [{"fileUrl": "foo.bar"}]})
