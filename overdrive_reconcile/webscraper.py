@@ -70,8 +70,8 @@ def scrape(library: str, src_fh: str, start: int = 0) -> None:
                         save2csv(dst_fh, row)
                     else:
                         save2csv(reject_fh, row)
+                time.sleep(0.5)
             n += 1
-            time.sleep(0.5)
 
 
 def get_ebook_status(html: bytes) -> EbookStatus:
